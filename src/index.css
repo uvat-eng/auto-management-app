@@ -282,3 +282,42 @@
 .leaflet-container .leaflet-tile {
   max-width: none !important;
 }
+
+.nav-top {
+  top: 12px;
+}
+.nav-bottom {
+  bottom: 84px;
+}
+.nav-bottom-panel {
+  bottom: 12px;
+}
+.nav-full .nav-top {
+  top: calc(env(safe-area-inset-top) + 10px);
+}
+.nav-full .nav-bottom {
+  bottom: calc(env(safe-area-inset-bottom) + 84px);
+}
+.nav-full .nav-bottom-panel {
+  bottom: calc(env(safe-area-inset-bottom) + 12px);
+}
+.nav-me-wrap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  transition: transform 0.5s ease-out;
+}
+.nav-me-cone {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 16px solid hsl(var(--primary));
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.6));
+}

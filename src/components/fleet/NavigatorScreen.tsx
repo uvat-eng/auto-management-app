@@ -7,8 +7,22 @@ import OfflineMapsDialog from "./OfflineMapsDialog";
 import { LAYERS, Place, Route, buildRoute, distance, formatDist, formatDur, makeLayer, searchPlaces } from "@/lib/maps";
 import { toast } from "sonner";
 import { isMuted, lowerFirst, say, setMuted, spokenDistance, voiceSupported } from "@/lib/voice";
+import { keepAwake } from "@/lib/wakelock";
+import { navFull } from "@/lib/navstate";
 
 const LAYER_KEY = "avtopark-map-layer";
+const MODE_KEY = "avtopark-map-mode";
+type Mode = "north" | "course";
+
+const meIcon = () =>
+  L.divIcon({ className: "", html: `<div class="nav-me-wrap"><span class="nav-me-cone"></span><span class="nav-me"></span></div>`, iconSize: [44, 44], iconAnchor: [22, 22] });
+
+const bearing = (a: [number, number], b: [number, number]) => {
+  const r = Math.PI / 180;
+  const y = Math.sin((b[1] - a[1]) * r) * Math.cos(b[0] * r);
+  const x = Math.cos(a[0] * r) * Math.sin(b[0] * r) - Math.sin(a[0] * r) * Math.cos(b[0] * r) * Math.cos((b[1] - a[1]) * r);
+  return ((Math.atan2(y, x) / r) + 360) % 360;
+};
 
 const dot = (cls: string) => L.divIcon({ className: "", html: `<span class="${cls}"></span>`, iconSize: [22, 22], iconAnchor: [11, 11] });
 
@@ -18,8 +32,21 @@ const formatDurSpoken = (s: number) => {
   return `В пути ${h ? `${h} ч ` : ""}${m} мин`;
 };
 
-const NavigatorScreen = () => {
+interface Props {
+  hidden?: boolean;
+}
+
+const NavigatorScreen = ({ hidden }: Props) => {
   const box = useRef<HTMLDivElement>(null);
+  const shell = useRef<HTMLElement>(null);
+  const [full, setFull] = useState(false);
+  const [mode, setMode] = useState<Mode>(() => (localStorage.getItem(MODE_KEY) as Mode) || "north");
+  const [heading, setHeading] = useState(0);
+  const [turn, setTurn] = useState(0);
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  const lastFix = useRef<[number, number] | null>(null);
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
   const map = useRef<L.Map | null>(null);
   const tiles = useRef<L.TileLayer | null>(null);
   const base = useRef<L.TileLayer | null>(null);
@@ -54,6 +81,7 @@ const NavigatorScreen = () => {
     m.on("dragstart", () => setFollow(false));
     m.on("zoomend", () => setZoom(m.getZoom()));
     m.on("click", (e: L.LeafletMouseEvent) => {
+      if (modeRef.current === "course") return;
       const p = { name: `${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`, lat: e.latlng.lat, lon: e.latlng.lng };
       setTarget(p);
       setResults([]);
@@ -63,7 +91,14 @@ const NavigatorScreen = () => {
 
     if ("geolocation" in navigator) {
       watch.current = navigator.geolocation.watchPosition(
-        (p) => setPos([p.coords.latitude, p.coords.longitude]),
+        (p) => {
+          const here: [number, number] = [p.coords.latitude, p.coords.longitude];
+          const speed = p.coords.speed ?? 0;
+          if (p.coords.heading !== null && !Number.isNaN(p.coords.heading) && speed > 1) setHeading(p.coords.heading);
+          else if (lastFix.current && distance(lastFix.current, here) > 8) setHeading(bearing(lastFix.current, here));
+          if (!lastFix.current || distance(lastFix.current, here) > 8) lastFix.current = here;
+          setPos(here);
+        },
         () => toast.message("Разрешите доступ к геопозиции, чтобы видеть себя на карте"),
         { enableHighAccuracy: true, maximumAge: 3000 },
       );
@@ -97,11 +132,87 @@ const NavigatorScreen = () => {
     const m = map.current;
     if (!m || !pos) return;
     if (!me.current) {
-      me.current = L.marker(pos, { icon: dot("nav-me") }).addTo(m);
+      me.current = L.marker(pos, { icon: meIcon(), zIndexOffset: 1000 }).addTo(m);
       m.setView(pos, 14);
     } else me.current.setLatLng(pos);
     if (follow) m.panTo(pos, { animate: true });
   }, [pos, follow]);
+
+  useEffect(() => {
+    const el = me.current?.getElement()?.querySelector(".nav-me-wrap") as HTMLElement | null;
+    if (el) el.style.transform = `rotate(${heading}deg)`;
+    setTurn((t) => {
+      const target = mode === "course" ? -heading : 0;
+      const d = ((((target - t) % 360) + 540) % 360) - 180;
+      return t + d;
+    });
+  }, [heading, mode, pos]);
+
+  useEffect(() => {
+    const el = shell.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setSize({ w: el.clientWidth, h: el.clientHeight }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    const t = setTimeout(() => {
+      m.invalidateSize();
+      if (follow && pos) m.setView(pos, m.getZoom(), { animate: false });
+    }, 60);
+    if (mode === "course") {
+      m.dragging.disable();
+      setFollow(true);
+    } else m.dragging.enable();
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, size.w, size.h, full, hidden]);
+
+  useEffect(() => {
+    if (hidden && !full) return;
+    keepAwake(true);
+    return () => keepAwake(false);
+  }, [hidden, full]);
+
+  useEffect(() => {
+    navFull.on = full;
+    if (!full) return;
+    window.history.pushState({ ...window.history.state, navFull: true }, "");
+    const onPop = () => setFull(false);
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      setTimeout(() => (navFull.on = false), 0);
+    };
+  }, [full]);
+
+  const openFull = () => {
+    setFull(true);
+    const el = document.documentElement as HTMLElement & { webkitRequestFullscreen?: () => void };
+    try {
+      if (el.requestFullscreen) el.requestFullscreen({ navigationUI: "hide" }).catch(() => undefined);
+      else el.webkitRequestFullscreen?.();
+    } catch {
+      /* not supported */
+    }
+  };
+
+  const closeFull = () => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
+    if (window.history.state?.navFull) window.history.back();
+    else setFull(false);
+  };
+
+  const switchMode = () => {
+    const next: Mode = mode === "north" ? "course" : "north";
+    setMode(next);
+    localStorage.setItem(MODE_KEY, next);
+    toast.message(next === "course" ? "Карта по курсу движения" : "Север сверху");
+    if (next === "course" && pos) map.current?.setView(pos, Math.max(map.current.getZoom(), 16));
+  };
 
   useEffect(() => {
     const m = map.current;
@@ -192,6 +303,7 @@ const NavigatorScreen = () => {
     }
     setDriving(true);
     setFollow(true);
+    if (!full) openFull();
     if (pos) map.current?.setView(pos, 17);
   };
 
@@ -199,11 +311,29 @@ const NavigatorScreen = () => {
   const stepDist = step && pos ? distance(pos, [step.lat, step.lon]) : step?.distance ?? 0;
 
   return (
-    <section className="[grid-area:photo/photo/due/due] relative min-h-0 overflow-hidden bg-background">
-      <div ref={box} className="absolute inset-0 z-0 nav-map" />
+    <section
+      ref={shell}
+      className={`${full ? "fixed inset-0 z-[2000] nav-full" : "[grid-area:photo/photo/due/due] relative min-h-0"} overflow-hidden bg-background ${hidden && !full ? "hidden" : ""}`}
+    >
+      <div
+        ref={box}
+        className="absolute z-0 nav-map"
+        style={
+          mode === "course" && size.w
+            ? {
+                width: Math.ceil(Math.hypot(size.w, size.h)),
+                height: Math.ceil(Math.hypot(size.w, size.h)),
+                left: (size.w - Math.ceil(Math.hypot(size.w, size.h))) / 2,
+                top: (size.h - Math.ceil(Math.hypot(size.w, size.h))) / 2,
+                transform: `rotate(${turn}deg)`,
+                transition: "transform 0.6s ease-out",
+              }
+            : { inset: 0, transform: "none" }
+        }
+      />
 
       {driving && step ? (
-        <div className="absolute left-3 right-3 top-3 z-[500] rounded-3xl bg-card/95 backdrop-blur border border-border p-4 flex items-center gap-4 animate-fade-in">
+        <div className="absolute left-3 right-3 nav-top z-[500] rounded-3xl bg-card/95 backdrop-blur border border-border p-4 flex items-center gap-4 animate-fade-in">
           <span className="w-12 h-12 rounded-2xl bg-primary text-primary-foreground grid place-items-center shrink-0">
             <Icon name="Navigation" size={22} />
           </span>
@@ -213,8 +343,9 @@ const NavigatorScreen = () => {
           </div>
         </div>
       ) : (
-        <div className="absolute left-3 right-3 top-3 z-[500] space-y-2">
+        <div className="absolute left-3 right-3 nav-top z-[500] space-y-2">
           <form onSubmit={doSearch} className="flex gap-2">
+
             <div className="relative flex-1">
               <Icon name="Search" size={16} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-muted-foreground pointer-events-none" />
               <Input
@@ -249,7 +380,23 @@ const NavigatorScreen = () => {
         </div>
       )}
 
-      <div className="absolute right-3 bottom-36 z-[500] flex flex-col gap-2">
+      <div className={`absolute right-3 z-[500] flex flex-col gap-2 ${target ? "bottom-36" : "nav-bottom"}`}>
+        <button onClick={switchMode} aria-label={mode === "north" ? "Карта по курсу" : "Север сверху"} className="nav-fab relative">
+          {mode === "north" ? (
+            <span className="flex flex-col items-center leading-none">
+              <Icon name="Navigation2" size={16} className="text-destructive" />
+              <span className="text-[11px] font-semibold mt-0.5">С</span>
+            </span>
+          ) : (
+            <span className="flex flex-col items-center leading-none" style={{ transform: `rotate(${turn}deg)` }}>
+              <Icon name="Navigation2" size={16} className="text-destructive" />
+              <span className="text-[11px] font-semibold mt-0.5">С</span>
+            </span>
+          )}
+        </button>
+        <button onClick={full ? closeFull : openFull} aria-label={full ? "Свернуть" : "На весь экран"} className="nav-fab">
+          <Icon name={full ? "Minimize2" : "Maximize2"} size={20} />
+        </button>
         {voiceSupported() && (
           <button
             onClick={() => {
@@ -283,7 +430,7 @@ const NavigatorScreen = () => {
       </div>
 
       {layersOpen && (
-        <div className="absolute right-16 bottom-36 z-[500] w-64 rounded-3xl bg-card/95 backdrop-blur border border-border p-2 animate-fade-in">
+        <div className="absolute right-16 nav-bottom z-[500] w-64 rounded-3xl bg-card/95 backdrop-blur border border-border p-2 animate-fade-in">
           {LAYERS.map((l) => (
             <button
               key={l.id}
@@ -307,7 +454,7 @@ const NavigatorScreen = () => {
       )}
 
       {target && (
-        <div className="absolute left-3 right-3 bottom-3 z-[500] rounded-3xl bg-card/95 backdrop-blur border border-border p-4 animate-fade-in">
+        <div className="absolute left-3 right-3 nav-bottom-panel z-[500] rounded-3xl bg-card/95 backdrop-blur border border-border p-4 animate-fade-in">
           {route ? (
             <div className="flex items-center gap-3">
               <div className="flex-1 min-w-0">
@@ -325,7 +472,7 @@ const NavigatorScreen = () => {
                   Стоп
                 </button>
               ) : (
-                <button onClick={startDrive} className="h-12 px-5 rounded-full bg-primary text-primary-foreground font-medium inline-flex items-center gap-2">
+                <button onClick={startDrive} className="h-12 px-5 rounded-full bg-primary text-primary-foreground font-medium inline-flex items-center gap-2 shrink-0">
                   <Icon name="Navigation" size={18} /> Поехали
                 </button>
               )}
@@ -347,6 +494,15 @@ const NavigatorScreen = () => {
             </div>
           )}
         </div>
+      )}
+
+      {!full && !target && (
+        <button
+          onClick={openFull}
+          className="absolute left-3 nav-bottom-panel z-[500] h-12 px-5 rounded-full bg-primary text-primary-foreground font-medium inline-flex items-center gap-2 shadow-lg"
+        >
+          <Icon name="Maximize2" size={18} /> Навигатор на весь экран
+        </button>
       )}
 
       <OfflineMapsDialog open={offline} onOpenChange={setOffline} layer={layer} pos={pos ?? (map.current ? [map.current.getCenter().lat, map.current.getCenter().lng] : null)} />
