@@ -2,6 +2,7 @@ import { Car } from "@/lib/fleet";
 
 const AUTH_URL = "https://functions.poehali.dev/5035c2fd-8d65-4bb3-9eb9-f8fae129bc0c";
 const GARAGE_URL = "https://functions.poehali.dev/1a179f21-2bcf-460d-a896-c1b8210019a7";
+const MANUALS_URL = "https://functions.poehali.dev/4a8e5cdd-6f60-45bf-ac5d-ee0b7cb70acf";
 const TOKEN_KEY = "avtopark-token";
 
 export interface User {
@@ -42,4 +43,25 @@ export const garageApi = {
   save: (car: Car) => call(GARAGE_URL, "PUT", { car }),
   remove: (id: string) => call(GARAGE_URL, "DELETE", { id }),
   upload: (image: string) => call<{ url: string }>(GARAGE_URL, "POST", { action: "upload", image }).then((r) => r.url),
+};
+
+export interface ManualHit {
+  url: string;
+  title: string;
+  source: string;
+  pdf: boolean;
+}
+
+export const manualsApi = {
+  search: async (make: string, year?: string) => {
+    for (let i = 0; ; i++) {
+      try {
+        const r = (await call<{ results: ManualHit[] }>(MANUALS_URL, "POST", { action: "search", make, year })).results;
+        if (r.length || i >= 2) return r;
+      } catch (e) {
+        if (i >= 2 || e instanceof AuthError) throw e;
+      }
+    }
+  },
+  save: (url: string) => call<{ url: string; stored: boolean; size?: number }>(MANUALS_URL, "POST", { action: "save", url }),
 };

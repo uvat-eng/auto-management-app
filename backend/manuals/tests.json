@@ -1,0 +1,4 @@
+{"tests": [
+  {"name": "CORS", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+  {"name": "Без входа", "method": "POST", "path": "/", "body": {"action": "search", "make": "Lada Vesta"}, "expectedStatus": 401}
+]}

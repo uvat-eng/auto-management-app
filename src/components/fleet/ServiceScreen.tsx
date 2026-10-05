@@ -1,5 +1,7 @@
 import Icon from "@/components/ui/icon";
 import BackButton from "./BackButton";
+import ManualSheet from "./ManualSheet";
+import { useState } from "react";
 import { Car, formatDate, formatKm, formatMoney, formatTerm, serviceLeft, serviceTotal } from "@/lib/fleet";
 
 interface Props {
@@ -12,6 +14,7 @@ interface Props {
 }
 
 const ServiceScreen = ({ car, cars, onSelectCar, onAdd, onBack, onOpenRecord }: Props) => {
+  const [manualOpen, setManualOpen] = useState(false);
 
   if (!car) return <div className="[grid-area:photo/photo/due/due]" />;
   const left = serviceLeft(car);
@@ -57,9 +60,18 @@ const ServiceScreen = ({ car, cars, onSelectCar, onAdd, onBack, onOpenRecord }: 
           ))}
         </div>
 
-        <button onClick={onAdd} className="w-full h-12 rounded-full bg-primary text-primary-foreground font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
-          <Icon name="Plus" size={18} /> Записать ТО
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button onClick={onAdd} className="h-14 rounded-2xl bg-primary text-primary-foreground font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
+            <Icon name="Plus" size={18} /> Записать ТО
+          </button>
+          <button
+            onClick={() => setManualOpen(true)}
+            className="relative h-14 rounded-2xl bg-secondary text-foreground font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform leading-tight px-3"
+          >
+            <Icon name="BookOpen" size={18} className="text-gold shrink-0" /> Руководство
+            {car.manual && <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />}
+          </button>
+        </div>
 
         {car.services.length === 0 ? (
           <p className="text-center text-muted-foreground py-10">Записей о ТО пока нет</p>
@@ -101,6 +113,7 @@ const ServiceScreen = ({ car, cars, onSelectCar, onAdd, onBack, onOpenRecord }: 
           </div>
         )}
       </div>
+      <ManualSheet car={car} open={manualOpen} onOpenChange={setManualOpen} />
     </section>
   );
 };

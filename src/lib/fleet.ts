@@ -16,6 +16,16 @@ export interface ServiceRecord {
   note?: string;
 }
 
+export interface Manual {
+  url: string;
+  title: string;
+  source: string;
+  original: string;
+  stored: boolean;
+  size?: number;
+  savedAt: string;
+}
+
 export interface Policy {
   company: string;
   number: string;
@@ -40,6 +50,7 @@ export interface Car {
   heroStatus?: "pending" | "error";
   heroAttempt?: number;
   archived?: boolean;
+  manual?: Manual;
   sts?: string;
   pts?: string;
   mileage: number;
