@@ -68,7 +68,7 @@ const ProfileSheet = ({ open, onOpenChange }: Props) => {
             onClick={() => setUpdates(true)}
             className="w-full flex items-center gap-3 rounded-2xl border border-border bg-background p-4 text-left hover:border-muted-foreground/40 transition-colors"
           >
-            <span className="w-11 h-11 rounded-xl bg-secondary text-gold grid place-items-center shrink-0">
+            <span className="w-11 h-11 rounded-xl bg-secondary text-primary grid place-items-center shrink-0">
               <Icon name="RefreshCw" size={20} />
             </span>
             <div className="flex-1 min-w-0">

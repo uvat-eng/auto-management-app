@@ -20,8 +20,8 @@ const LINKS: { id: HeadLink; label: string }[] = [
 
 const AppHeader = ({ active, onNavigate, onAddCar, onProfile, onReminders, alerts }: Props) => (
   <header className="[grid-area:head] safe-top relative z-10 bg-background">
-    <div className="h-14 flex items-center justify-between gap-4 px-5 md:px-[90px] text-base">
-    <b className="font-head font-semibold text-lg tracking-[0.01em] text-foreground whitespace-nowrap">Твой автопарк</b>
+    <div className="h-14 flex items-center justify-between gap-2 px-3 sm:px-5 md:px-[90px] text-base min-w-0">
+    <b className="font-head font-semibold text-[17px] sm:text-lg tracking-[0.01em] text-foreground truncate min-w-0">Твой автопарк</b>
     <div className="hidden">
       {LINKS.map((l) => (
         <button
@@ -33,10 +33,10 @@ const AppHeader = ({ active, onNavigate, onAddCar, onProfile, onReminders, alert
         </button>
       ))}
     </div>
-    <div className="flex items-center gap-2">
-      <button onClick={onAddCar} aria-label="Добавить автомобиль" className="h-10 px-3 rounded-full flex items-center gap-1.5 text-foreground bg-secondary hover:text-primary transition-colors">
+    <div className="flex items-center gap-1.5 shrink-0">
+      <button onClick={onAddCar} aria-label="Добавить автомобиль" className="h-10 min-w-10 px-2.5 min-[400px]:px-3 rounded-full flex items-center justify-center gap-1.5 text-foreground bg-secondary hover:text-primary transition-colors">
         <Icon name="Plus" size={18} />
-        <span className="text-sm">Машина</span>
+        <span className="text-sm hidden min-[400px]:inline">Машина</span>
       </button>
       <button onClick={onReminders} aria-label="Напоминания" className="relative w-10 h-10 rounded-full grid place-items-center bg-secondary text-foreground hover:text-primary transition-colors">
         <Icon name="Bell" size={20} />

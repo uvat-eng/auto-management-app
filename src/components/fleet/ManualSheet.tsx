@@ -117,7 +117,7 @@ const ManualSheet = ({ car, open, onOpenChange }: Props) => {
 
           {searching && (
             <div className="rounded-3xl border border-border bg-background p-6 flex flex-col items-center text-center gap-3">
-              <Icon name="Sparkles" size={28} className="text-gold animate-pulse" />
+              <Icon name="Sparkles" size={28} className="text-primary animate-pulse" />
               <p className="font-medium">Ищем руководство для {car?.make}…</p>
               <p className="text-sm text-muted-foreground">Проверяем официальные сайты и PDF-файлы</p>
             </div>

@@ -78,13 +78,12 @@ const CarCarousel = ({ cars, index, onIndexChange, onOpenCar, onAddCar }: Props)
         {car?.photos.length ?? 0} / {MAX_PHOTOS} фото
       </span>
 
-      <div key={car?.id} className="absolute left-6 md:left-[90px] bottom-6 z-[3] pointer-events-none animate-fade-in pr-28">
-        <p className="font-head font-medium text-[1.35rem] md:text-[1.7em] leading-tight mb-1.5">
-          {car?.make} <span className="text-muted-foreground">·</span> {car?.plate}
-        </p>
+      <div key={car?.id} className="absolute left-5 right-20 md:left-[90px] bottom-3 sm:bottom-6 z-[3] pointer-events-none animate-fade-in">
+        <p className="font-head font-medium text-[1.2rem] sm:text-[1.35rem] md:text-[1.7em] leading-tight truncate">{car?.make}</p>
+        <p className="text-muted-foreground text-[15px] sm:text-base mt-0.5 truncate">{car?.plate}</p>
       </div>
 
-      <div className="absolute right-6 md:right-[90px] bottom-[34px] z-[3] flex gap-2">
+      <div className="absolute right-5 md:right-[90px] bottom-5 sm:bottom-[34px] z-[3] flex gap-2">
         {cars.map((c, i) => (
           <button
             key={c.id}

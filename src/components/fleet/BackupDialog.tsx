@@ -89,7 +89,7 @@ const BackupDialog = ({ open, onOpenChange }: Props) => {
           ) : file ? (
             <>
               <div className="flex items-center gap-3">
-                <span className="w-10 h-10 rounded-xl bg-secondary grid place-items-center text-gold shrink-0">
+                <span className="w-10 h-10 rounded-xl bg-secondary grid place-items-center text-primary shrink-0">
                   <Icon name="FileArchive" size={20} />
                 </span>
                 <div className="min-w-0">

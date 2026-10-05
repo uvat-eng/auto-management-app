@@ -258,7 +258,7 @@ const NavigatorScreen = () => {
               if (muted) say("Голосовые подсказки включены", true);
             }}
             aria-label={muted ? "Включить голос" : "Выключить голос"}
-            className={`nav-fab ${muted ? "text-muted-foreground" : "text-gold"}`}
+            className={`nav-fab ${muted ? "text-muted-foreground" : "!text-primary"}`}
           >
             <Icon name={muted ? "VolumeX" : "Volume2"} size={20} />
           </button>
@@ -276,7 +276,7 @@ const NavigatorScreen = () => {
             else toast.message("Ищем вас… Разрешите доступ к геопозиции");
           }}
           aria-label="Где я"
-          className={`nav-fab ${follow && pos ? "text-gold" : ""}`}
+          className={`nav-fab ${follow && pos ? "!text-primary" : ""}`}
         >
           <Icon name="LocateFixed" size={20} />
         </button>

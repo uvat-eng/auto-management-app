@@ -22,9 +22,9 @@ const ServiceScreen = ({ car, cars, onSelectCar, onAdd, onBack, onOpenRecord }: 
 
   return (
     <section className="[grid-area:photo/photo/due/due] min-h-0 overflow-y-auto no-scrollbar animate-fade-in">
-      <div className="max-w-3xl mx-auto px-6 py-6 space-y-6">
+      <div className="max-w-3xl mx-auto px-4 min-[380px]:px-6 py-5 space-y-5">
         <BackButton onClick={onBack} />
-        <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-6 px-6">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 min-[380px]:-mx-6 min-[380px]:px-6">
           {cars.map((c, i) => (
             <button
               key={c.id}
@@ -38,7 +38,7 @@ const ServiceScreen = ({ car, cars, onSelectCar, onAdd, onBack, onOpenRecord }: 
 
         <div>
           <p className="text-muted-foreground text-sm">{car.make}</p>
-          <h2 className="font-head font-semibold text-[44px] sm:text-[56px] tracking-[-0.035em] leading-none text-gold mt-1">
+          <h2 className="font-head font-semibold text-[clamp(34px,11vw,44px)] sm:text-[56px] tracking-[-0.035em] leading-none text-gold mt-1">
             {left === null ? "—" : left < 0 ? `−${formatKm(-left)} км` : `${formatKm(left)} км`}
           </h2>
           <p className="font-head text-lg mt-2">
@@ -53,22 +53,22 @@ const ServiceScreen = ({ car, cars, onSelectCar, onAdd, onBack, onOpenRecord }: 
             ["Потрачено", formatMoney(spent)],
             ["След. ТО", car.nextServiceKm ? `${formatKm(car.nextServiceKm)}` : "—"],
           ].map(([k, v]) => (
-            <div key={k} className="rounded-2xl bg-card border border-border p-3">
-              <p className="text-[12.5px] uppercase tracking-[0.15em] text-muted-foreground">{k}</p>
-              <p className="font-head text-lg mt-1 truncate">{v}</p>
+            <div key={k} className="rounded-2xl bg-card border border-border p-2.5 min-[380px]:p-3 min-w-0">
+              <p className="text-[12px] text-muted-foreground truncate">{k}</p>
+              <p className="font-head text-base min-[380px]:text-lg mt-0.5 truncate">{v}</p>
             </div>
           ))}
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <button onClick={onAdd} className="h-14 rounded-2xl bg-primary text-primary-foreground font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
+          <button onClick={onAdd} className="h-14 rounded-2xl bg-primary text-primary-foreground font-medium flex items-center justify-center gap-1.5 px-2 text-[15px] min-[380px]:text-base whitespace-nowrap active:scale-[0.98] transition-transform">
             <Icon name="Plus" size={18} /> Записать ТО
           </button>
           <button
             onClick={() => setManualOpen(true)}
-            className="relative h-14 rounded-2xl bg-secondary text-foreground font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform leading-tight px-3"
+            className="relative h-14 rounded-2xl bg-secondary text-foreground font-medium flex items-center justify-center gap-1.5 px-2 text-[15px] min-[380px]:text-base whitespace-nowrap active:scale-[0.98] transition-transform"
           >
-            <Icon name="BookOpen" size={18} className="text-gold shrink-0" /> Руководство
+            <Icon name="BookOpen" size={18} className="shrink-0 text-primary" /> Руководство
             {car.manual && <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />}
           </button>
         </div>

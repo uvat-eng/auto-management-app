@@ -21,35 +21,35 @@ const CarStats = ({ car, onMileage, onInsurance, onService }: Props) => {
 
   return (
     <>
-      <section key={`km-${car.id}`} className="[grid-area:km] px-6 md:px-[90px] pt-3 pb-2 md:pb-6 animate-fade-in">
-        <h1 className="font-head font-semibold text-[46px] sm:text-[64px] tracking-[-0.035em] leading-[1.05] text-gold whitespace-nowrap">
+      <section key={`km-${car.id}`} className="[grid-area:km] px-5 sm:px-6 md:px-[90px] pt-2 sm:pt-3 pb-1 sm:pb-2 md:pb-6 animate-fade-in">
+        <h1 className="font-head font-semibold text-[clamp(34px,11vw,46px)] sm:text-[64px] tracking-[-0.035em] leading-[1.05] text-gold whitespace-nowrap">
           {formatKm(car.mileage)} км
         </h1>
-        <button onClick={onService} className="font-head text-[1.3rem] sm:text-[1.6em] font-medium mt-1 text-left hover:text-gold-link transition-colors">
+        <button onClick={onService} className="font-head text-[clamp(1.05rem,4.6vw,1.3rem)] sm:text-[1.6em] font-medium mt-1 text-left hover:text-gold-link transition-colors">
           {left === null ? "Срок ТО не задан." : left < 0 ? `ТО просрочено на ${formatKm(-left)} км.` : `ТО через ${formatKm(left)} км.`}
         </button>
       </section>
 
-      <section key={`due-${car.id}`} className="[grid-area:due] px-6 md:px-[90px] pt-1 md:pt-2 pb-4 md:pb-6 flex flex-col items-stretch md:items-end md:items-end justify-end gap-3.5 animate-fade-in [animation-delay:80ms]">
+      <section key={`due-${car.id}`} className="[grid-area:due] px-5 sm:px-6 md:px-[90px] pt-1 md:pt-2 pb-3 sm:pb-4 md:pb-6 flex flex-col items-stretch md:items-end md:items-end justify-end gap-3.5 animate-fade-in [animation-delay:80ms]">
         <button onClick={onInsurance} className="flex gap-9 text-muted-foreground text-left text-base">
           <div>
-            <b className={`block font-head text-[1.8rem] sm:text-[2.2em] font-medium tracking-[-0.02em] leading-tight ${termTone(car.osago?.end)}`}>
+            <b className={`block font-head text-[clamp(1.4rem,7vw,1.8rem)] sm:text-[2.2em] font-medium tracking-[-0.02em] leading-tight ${termTone(car.osago?.end)}`}>
               {formatTerm(car.osago?.end)}
             </b>
             ОСАГО
           </div>
           <div>
-            <b className={`block font-head text-[1.8rem] sm:text-[2.2em] font-medium tracking-[-0.02em] leading-tight ${termTone(car.kasko?.end)}`}>
+            <b className={`block font-head text-[clamp(1.4rem,7vw,1.8rem)] sm:text-[2.2em] font-medium tracking-[-0.02em] leading-tight ${termTone(car.kasko?.end)}`}>
               {formatTerm(car.kasko?.end)}
             </b>
             КАСКО
           </div>
         </button>
-        <div className="flex items-center justify-between gap-6 bg-secondary rounded-[40px] py-[7px] pr-[7px] pl-6 font-medium text-[1.1rem]">
+        <div className="flex items-center justify-between gap-6 bg-secondary rounded-[40px] py-[6px] pr-[6px] pl-5 font-medium text-[clamp(0.95rem,4.2vw,1.1rem)] whitespace-nowrap">
           Пробег сегодня
           <button
             onClick={onMileage}
-            className="bg-primary text-primary-foreground rounded-[40px] px-6 h-12 transition-transform active:scale-95 hover:brightness-110"
+            className="bg-primary text-primary-foreground rounded-[40px] px-5 h-11 sm:h-12 shrink-0 transition-transform active:scale-95 hover:brightness-110"
           >
             Отметить
           </button>

@@ -67,6 +67,10 @@ public class MainActivity extends Activity {
         s.setAllowFileAccess(false);
         s.setLoadWithOverviewMode(true);
         s.setUseWideViewPort(true);
+        s.setTextZoom(100);
+        s.setSupportZoom(true);
+        s.setBuiltInZoomControls(true);
+        s.setDisplayZoomControls(false);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
         s.setUserAgentString(s.getUserAgentString() + " AvtoparkApp/1.0");
 
