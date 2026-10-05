@@ -189,8 +189,16 @@ const NavigatorScreen = ({ hidden }: Props) => {
     };
   }, [full]);
 
+  const nativeImmersive = (on: boolean) => (window as unknown as { AvtoparkNative?: { immersive?: (v: boolean) => void } }).AvtoparkNative?.immersive?.(on);
+
+  useEffect(() => {
+    nativeImmersive(full);
+    return () => nativeImmersive(false);
+  }, [full]);
+
   const openFull = () => {
     setFull(true);
+    if ((window as unknown as { AvtoparkNative?: unknown }).AvtoparkNative) return;
     const el = document.documentElement as HTMLElement & { webkitRequestFullscreen?: () => void };
     try {
       if (el.requestFullscreen) el.requestFullscreen({ navigationUI: "hide" }).catch(() => undefined);
