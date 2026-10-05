@@ -43,11 +43,11 @@ const AuthScreen = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-background text-foreground flex flex-col">
+    <div className="min-h-[100dvh] bg-background text-foreground flex flex-col pb-[env(safe-area-inset-bottom)]">
       <div className="relative h-[38dvh] min-h-[220px] overflow-hidden">
         <img src={HERO} alt="" className="absolute inset-0 w-full h-full object-cover [object-position:center_62%]" />
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-transparent to-background" />
-        <p className="absolute left-6 top-6 text-sm font-medium tracking-[0.02em]">Твой автопарк</p>
+        <p className="absolute left-6 top-[calc(env(safe-area-inset-top)+16px)] text-base font-medium tracking-[0.02em]">Твой автопарк</p>
       </div>
 
       <form onSubmit={submit} className="flex-1 w-full max-w-md mx-auto px-6 pb-10 -mt-6 relative space-y-5 animate-fade-in">

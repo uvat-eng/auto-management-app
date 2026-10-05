@@ -134,7 +134,7 @@ const ServiceForm = ({ car, record, open, onOpenChange, onSaved }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border max-w-[520px] max-h-[92dvh] overflow-y-auto rounded-3xl">
+      <DialogContent className="bg-card border-border max-w-[520px] max-h-[85dvh] overflow-y-auto rounded-3xl">
         <DialogHeader>
           <DialogTitle className="font-head text-2xl">{record ? "Изменить ТО" : "Новое ТО"}</DialogTitle>
           <DialogDescription>

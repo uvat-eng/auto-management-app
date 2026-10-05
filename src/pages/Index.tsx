@@ -87,8 +87,9 @@ const FleetApp = () => {
   }, []);
 
   return (
-    <div className="fleet-grid bg-background text-foreground text-[15px]">
+    <div className="fleet-grid bg-background text-foreground text-[17px]">
       <AppHeader active={headActive} onNavigate={onHead} onAddCar={() => setOverlay("add")} onProfile={() => setOverlay("profile")} />
+      <BottomNav tab={tab} onChange={setTab} alerts={alerts} />
 
       {ready && tab === "fleet" && (
         <>
@@ -100,7 +101,6 @@ const FleetApp = () => {
       {tab === "map" && <NavigatorScreen />}
       {ready && tab === "reminders" && <RemindersScreen reminders={reminders} onOpen={openReminder} onBack={() => setTab("fleet")} />}
 
-      <BottomNav tab={tab} onChange={setTab} alerts={alerts} />
 
       <MileageDialog car={car} open={overlay === "mileage"} onOpenChange={close} />
       <CarSheet

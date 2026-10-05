@@ -4,6 +4,8 @@ import Icon from "@/components/ui/icon";
 import BackButton from "./BackButton";
 import PolicyDialog from "./PolicyDialog";
 import BackupDialog from "./BackupDialog";
+import UpdateDialog from "./UpdateDialog";
+import { APP_VERSION } from "@/lib/updates";
 import { useAuth } from "@/hooks/use-auth";
 import { useFleet } from "@/hooks/use-fleet";
 import { formatKm } from "@/lib/fleet";
@@ -20,10 +22,11 @@ const ProfileSheet = ({ open, onOpenChange }: Props) => {
   const { cars, archived, sync, archiveCar } = useFleet();
   const [policy, setPolicy] = useState(false);
   const [backup, setBackup] = useState(false);
+  const [updates, setUpdates] = useState(false);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[92dvh] rounded-t-[32px] bg-card border-border p-0 flex flex-col [&>button]:hidden">
+      <SheetContent side="bottom" className="h-[calc(100dvh-env(safe-area-inset-top)-12px)] pb-[env(safe-area-inset-bottom)] rounded-t-[32px] bg-card border-border p-0 flex flex-col [&>button]:hidden">
         <SheetHeader className="px-6 pt-5 pb-4 text-left space-y-3">
           <BackButton onClick={() => onOpenChange(false)} className="self-start" />
           <div>
@@ -38,11 +41,11 @@ const ProfileSheet = ({ open, onOpenChange }: Props) => {
         <div className="flex-1 overflow-y-auto px-6 pb-10 space-y-6">
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-2xl bg-background border border-border p-4">
-              <p className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground">В гараже</p>
+              <p className="text-[12.5px] uppercase tracking-[0.15em] text-muted-foreground">В гараже</p>
               <p className="font-head text-2xl mt-1">{cars.length}</p>
             </div>
             <div className="rounded-2xl bg-background border border-border p-4">
-              <p className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground">В архиве</p>
+              <p className="text-[12.5px] uppercase tracking-[0.15em] text-muted-foreground">В архиве</p>
               <p className="font-head text-2xl mt-1">{archived.length}</p>
             </div>
           </div>
@@ -57,6 +60,20 @@ const ProfileSheet = ({ open, onOpenChange }: Props) => {
             <div className="flex-1 min-w-0">
               <p className="font-medium">Резервная копия</p>
               <p className="text-xs text-muted-foreground">Сохранить в файл, отправить или загрузить на новом телефоне</p>
+            </div>
+            <Icon name="ChevronRight" size={18} className="text-muted-foreground" />
+          </button>
+
+          <button
+            onClick={() => setUpdates(true)}
+            className="w-full flex items-center gap-3 rounded-2xl border border-border bg-background p-4 text-left hover:border-muted-foreground/40 transition-colors"
+          >
+            <span className="w-11 h-11 rounded-xl bg-secondary text-gold grid place-items-center shrink-0">
+              <Icon name="RefreshCw" size={20} />
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium">Проверить обновления</p>
+              <p className="text-xs text-muted-foreground">Версия {APP_VERSION.name}</p>
             </div>
             <Icon name="ChevronRight" size={18} className="text-muted-foreground" />
           </button>
@@ -125,6 +142,7 @@ const ProfileSheet = ({ open, onOpenChange }: Props) => {
         </div>
         <PolicyDialog open={policy} onOpenChange={setPolicy} />
         <BackupDialog open={backup} onOpenChange={setBackup} />
+        <UpdateDialog open={updates} onOpenChange={setUpdates} />
       </SheetContent>
     </Sheet>
   );

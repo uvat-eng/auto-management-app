@@ -18,6 +18,11 @@ export default {
 			}
 		},
 		extend: {
+			fontSize: {
+				xs: ['0.8125rem', { lineHeight: '1.15rem' }],
+				sm: ['0.9375rem', { lineHeight: '1.35rem' }],
+				base: ['1.0625rem', { lineHeight: '1.6rem' }],
+			},
 			fontFamily: {
 				head: ['"Inter Tight"', 'sans-serif'],
 				body: ['Inter', 'sans-serif'],

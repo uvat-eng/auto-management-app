@@ -147,7 +147,7 @@ const CarSheet = ({ car, open, tab, onTabChange, onOpenChange, onOpenRecord }: P
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[92dvh] rounded-t-[32px] bg-card border-border p-0 flex flex-col">
+      <SheetContent side="bottom" className="h-[calc(100dvh-env(safe-area-inset-top)-12px)] pb-[env(safe-area-inset-bottom)] rounded-t-[32px] bg-card border-border p-0 flex flex-col">
         <SheetHeader className="px-6 pt-5 pb-3 text-left space-y-3">
           <BackButton onClick={() => onOpenChange(false)} className="self-start" />
           <SheetTitle className="font-head text-2xl">{car.make}</SheetTitle>
@@ -189,7 +189,7 @@ const CarSheet = ({ car, open, tab, onTabChange, onOpenChange, onOpenRecord }: P
                     <button onClick={() => setView(p)} className="w-full h-full">
                       <img src={p} alt="" className="w-full h-full object-cover" />
                     </button>
-                    {i === 0 && <span className="absolute left-1.5 top-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">обложка</span>}
+                    {i === 0 && <span className="absolute left-1.5 top-1.5 text-[12px] px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">обложка</span>}
                     <div className="absolute right-1.5 top-1.5 flex gap-1">
                       <button
                         onClick={() => stylize(car, p)}

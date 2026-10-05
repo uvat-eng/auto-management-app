@@ -17,9 +17,10 @@ const LINKS: { id: HeadLink; label: string }[] = [
 ];
 
 const AppHeader = ({ active, onNavigate, onAddCar, onProfile }: Props) => (
-  <header className="[grid-area:head] relative z-10 flex items-center justify-between md:justify-center gap-4 md:gap-11 px-5 text-[0.8rem] bg-background border-b border-border">
-    <b className="font-medium tracking-[0.02em] text-foreground whitespace-nowrap">Твой автопарк</b>
-    <div className="hidden md:flex items-center gap-11">
+  <header className="[grid-area:head] safe-top relative z-10 bg-background">
+    <div className="h-14 flex items-center justify-between gap-4 px-5 md:px-[90px] text-base">
+    <b className="font-head font-semibold text-lg tracking-[0.01em] text-foreground whitespace-nowrap">Твой автопарк</b>
+    <div className="hidden">
       {LINKS.map((l) => (
         <button
           key={l.id}
@@ -30,14 +31,15 @@ const AppHeader = ({ active, onNavigate, onAddCar, onProfile }: Props) => (
         </button>
       ))}
     </div>
-    <div className="md:absolute md:right-[90px] flex items-center gap-5">
-      <button onClick={onAddCar} aria-label="Добавить автомобиль" className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors">
-        <Icon name="Plus" size={16} />
-        <span className="hidden sm:inline">Машина</span>
+    <div className="flex items-center gap-2">
+      <button onClick={onAddCar} aria-label="Добавить автомобиль" className="h-10 px-3 rounded-full flex items-center gap-1.5 text-foreground bg-secondary hover:text-primary transition-colors">
+        <Icon name="Plus" size={18} />
+        <span className="text-sm">Машина</span>
       </button>
-      <button onClick={onProfile} aria-label="Профиль" className="text-muted-foreground hover:text-primary transition-colors">
-        <Icon name="CircleUserRound" size={18} />
+      <button onClick={onProfile} aria-label="Профиль" className="w-10 h-10 rounded-full grid place-items-center bg-secondary text-foreground hover:text-primary transition-colors">
+        <Icon name="CircleUserRound" size={20} />
       </button>
+    </div>
     </div>
   </header>
 );

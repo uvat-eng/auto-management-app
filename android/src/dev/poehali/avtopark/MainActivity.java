@@ -145,6 +145,30 @@ public class MainActivity extends Activity {
 
     private class NativeBridge {
         @JavascriptInterface
+        public int versionCode() {
+            try {
+                return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+            } catch (Exception e) {
+                return 0;
+            }
+        }
+
+        @JavascriptInterface
+        public String siteUrl() {
+            return "";
+        }
+
+        @JavascriptInterface
+        public void openUrl(String url) {
+            runOnUiThread(() -> {
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                } catch (Exception ignored) {
+                }
+            });
+        }
+
+        @JavascriptInterface
         public void shareFile(String name, String base64) {
             try {
                 File dir = new File(getCacheDir(), "camera");

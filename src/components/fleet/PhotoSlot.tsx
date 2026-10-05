@@ -34,7 +34,7 @@ const PhotoSlot = ({ label, value, onChange, onView, className = "" }: Props) =>
           <button type="button" onClick={() => onView?.(value)} className="w-full h-full">
             <img src={value} alt={label} className="w-full h-full object-cover" />
           </button>
-          <span className="absolute left-2 bottom-2 text-[11px] px-2 py-0.5 rounded-full bg-background/80 backdrop-blur">{label}</span>
+          <span className="absolute left-2 bottom-2 text-[12.5px] px-2 py-0.5 rounded-full bg-background/80 backdrop-blur">{label}</span>
           <button
             type="button"
             onClick={() => onChange(undefined)}

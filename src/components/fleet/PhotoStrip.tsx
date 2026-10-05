@@ -54,7 +54,7 @@ const PhotoStrip = ({ title, photos, onChange, max = 12 }: Props) => {
             className="shrink-0 w-20 h-20 rounded-xl border border-dashed border-border flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary hover:border-primary transition-colors"
           >
             <Icon name={busy ? "Loader" : "ImagePlus"} size={20} className={busy ? "animate-spin" : ""} />
-            <span className="text-[10px]">Добавить</span>
+            <span className="text-[12px]">Добавить</span>
           </button>
         )}
         {photos.map((p, i) => (

@@ -51,7 +51,7 @@ const ServiceScreen = ({ car, cars, onSelectCar, onAdd, onBack, onOpenRecord }: 
             ["След. ТО", car.nextServiceKm ? `${formatKm(car.nextServiceKm)}` : "—"],
           ].map(([k, v]) => (
             <div key={k} className="rounded-2xl bg-card border border-border p-3">
-              <p className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground">{k}</p>
+              <p className="text-[12.5px] uppercase tracking-[0.15em] text-muted-foreground">{k}</p>
               <p className="font-head text-lg mt-1 truncate">{v}</p>
             </div>
           ))}

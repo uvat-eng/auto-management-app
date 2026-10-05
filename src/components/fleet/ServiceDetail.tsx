@@ -57,7 +57,7 @@ const ServiceDetail = ({ car, record, onClose, onEdit, onDelete }: Props) => {
 
   return (
     <Sheet open={!!record} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent side="bottom" className="h-[100dvh] sm:h-[92dvh] sm:rounded-t-[32px] bg-card border-border p-0 flex flex-col [&>button]:hidden">
+      <SheetContent side="bottom" className="h-[100dvh] sm:h-[92dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] sm:rounded-t-[32px] bg-card border-border p-0 flex flex-col [&>button]:hidden">
         {record && car && (
           <>
             <SheetHeader className="px-6 pt-5 pb-4 text-left space-y-3 border-b border-border">
@@ -83,7 +83,7 @@ const ServiceDetail = ({ car, record, onClose, onEdit, onDelete }: Props) => {
                   ["Итого", formatMoney(serviceTotal(record))],
                 ].map(([k, v]) => (
                   <div key={k} className="rounded-2xl bg-background border border-border p-3">
-                    <p className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground">{k}</p>
+                    <p className="text-[12.5px] uppercase tracking-[0.15em] text-muted-foreground">{k}</p>
                     <p className={`font-head text-sm sm:text-base mt-1 ${k === "Итого" ? "text-gold" : ""}`}>{v}</p>
                   </div>
                 ))}
@@ -106,7 +106,7 @@ const ServiceDetail = ({ car, record, onClose, onEdit, onDelete }: Props) => {
                     {docs.map(([label, src]) => (
                       <button key={label} onClick={() => setView(src)} className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-border">
                         <img src={src} alt={label} className="w-full h-full object-cover" />
-                        <span className="absolute left-2 bottom-2 text-[11px] px-2 py-0.5 rounded-full bg-background/80 backdrop-blur">{label}</span>
+                        <span className="absolute left-2 bottom-2 text-[12.5px] px-2 py-0.5 rounded-full bg-background/80 backdrop-blur">{label}</span>
                       </button>
                     ))}
                   </div>
