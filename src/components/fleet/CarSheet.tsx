@@ -31,6 +31,7 @@ interface Props {
   tab: CarSheetTab;
   onTabChange: (t: CarSheetTab) => void;
   onOpenChange: (v: boolean) => void;
+  onOpenRecord?: (id: string) => void;
 }
 
 const PolicyCard = ({ title, policy, onSave }: { title: string; policy?: Policy; onSave: (p?: Policy) => void }) => {
@@ -109,7 +110,7 @@ const PolicyCard = ({ title, policy, onSave }: { title: string; policy?: Policy;
   );
 };
 
-const CarSheet = ({ car, open, tab, onTabChange, onOpenChange }: Props) => {
+const CarSheet = ({ car, open, tab, onTabChange, onOpenChange, onOpenRecord }: Props) => {
   const { updateCar, removeCar, stylize } = useFleet();
   const fileRef = useRef<HTMLInputElement>(null);
   const [view, setView] = useState<string | null>(null);
@@ -220,6 +221,36 @@ const CarSheet = ({ car, open, tab, onTabChange, onOpenChange }: Props) => {
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">ПТС</p>
                 <PhotoSlot label="Фото ПТС" value={car.pts} onChange={(v) => updateCar(car.id, { pts: v })} onView={setView} />
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Документы по ТО</p>
+                {car.services.some((x) => x.orderPhoto || x.receiptPhoto || x.photos?.length) ? (
+                  <div className="space-y-2">
+                    {car.services
+                      .filter((x) => x.orderPhoto || x.receiptPhoto || x.photos?.length)
+                      .map((x) => {
+                        const files = [x.orderPhoto, x.receiptPhoto, ...(x.photos ?? [])].filter(Boolean) as string[];
+                        return (
+                          <button
+                            key={x.id}
+                            onClick={() => onOpenRecord?.(x.id)}
+                            className="w-full flex items-center gap-3 rounded-2xl border border-border bg-background p-3 text-left"
+                          >
+                            <img src={files[0]} alt="" className="w-12 h-12 rounded-xl object-cover shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate">{x.title}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatDate(x.date)} · файлов: {files.length}
+                              </p>
+                            </div>
+                            <Icon name="ChevronRight" size={18} className="text-muted-foreground" />
+                          </button>
+                        );
+                      })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Наряд-заказы и чеки появятся здесь, когда вы добавите их в записи о ТО.</p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">

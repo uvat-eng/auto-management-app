@@ -1,10 +1,6 @@
-import { useState } from "react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Icon from "@/components/ui/icon";
-import PhotoViewer from "./PhotoViewer";
 import BackButton from "./BackButton";
 import { Car, formatDate, formatKm, formatMoney, formatTerm, serviceLeft, serviceTotal } from "@/lib/fleet";
-import { useFleet } from "@/hooks/use-fleet";
 
 interface Props {
   car?: Car;
@@ -12,11 +8,10 @@ interface Props {
   onSelectCar: (i: number) => void;
   onAdd: () => void;
   onBack: () => void;
+  onOpenRecord: (id: string) => void;
 }
 
-const ServiceScreen = ({ car, cars, onSelectCar, onAdd, onBack }: Props) => {
-  const { updateCar } = useFleet();
-  const [view, setView] = useState<string | null>(null);
+const ServiceScreen = ({ car, cars, onSelectCar, onAdd, onBack, onOpenRecord }: Props) => {
 
   if (!car) return <div className="[grid-area:photo/photo/due/due]" />;
   const left = serviceLeft(car);
@@ -69,64 +64,43 @@ const ServiceScreen = ({ car, cars, onSelectCar, onAdd, onBack }: Props) => {
         {car.services.length === 0 ? (
           <p className="text-center text-muted-foreground py-10">Записей о ТО пока нет</p>
         ) : (
-          <Accordion type="single" collapsible className="space-y-2">
-            {car.services.map((s) => (
-              <AccordionItem key={s.id} value={s.id} className="rounded-2xl border border-border bg-card px-4">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="text-left">
-                    <p className="font-head text-base">{s.title}</p>
+          <div className="space-y-2">
+            {car.services.map((s) => {
+              const docs = [s.orderPhoto, s.receiptPhoto, ...(s.photos ?? [])].filter(Boolean) as string[];
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => onOpenRecord(s.id)}
+                  className="w-full flex items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left hover:border-muted-foreground/40 active:scale-[0.99] transition-all"
+                >
+                  {docs[0] ? (
+                    <img src={docs[0]} alt="" className="w-14 h-14 rounded-xl object-cover shrink-0" />
+                  ) : (
+                    <span className="w-14 h-14 rounded-xl bg-background border border-border grid place-items-center shrink-0 text-muted-foreground">
+                      <Icon name="Wrench" size={20} />
+                    </span>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="font-head text-base truncate">{s.title}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {formatDate(s.date)} · {formatKm(s.mileage)} км · {formatMoney(serviceTotal(s))}
+                      {formatDate(s.date)} · {formatKm(s.mileage)} км
+                    </p>
+                    <p className="text-xs mt-1 flex items-center gap-3">
+                      <span className="text-gold">{formatMoney(serviceTotal(s))}</span>
+                      {docs.length > 0 && (
+                        <span className="text-muted-foreground inline-flex items-center gap-1">
+                          <Icon name="Paperclip" size={12} /> {docs.length}
+                        </span>
+                      )}
                     </p>
                   </div>
-                </AccordionTrigger>
-                <AccordionContent className="space-y-4">
-                  {[
-                    ["Работы", s.works],
-                    ["Запчасти", s.parts],
-                  ].map(([label, items]) =>
-                    (items as typeof s.works).length ? (
-                      <div key={label as string}>
-                        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-1">{label as string}</p>
-                        <ul className="divide-y divide-border">
-                          {(items as typeof s.works).map((it, i) => (
-                            <li key={i} className="flex justify-between py-1.5 text-sm gap-3">
-                              <span>{it.name}</span>
-                              <span className="text-muted-foreground whitespace-nowrap">{formatMoney(it.cost)}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : null,
-                  )}
-                  {(s.orderPhoto || s.receiptPhoto) && (
-                    <div className="flex gap-2">
-                      {[
-                        ["Наряд-заказ", s.orderPhoto],
-                        ["Чек", s.receiptPhoto],
-                      ].map(([l, src]) =>
-                        src ? (
-                          <button key={l} onClick={() => setView(src)} className="relative w-24 h-20 rounded-xl overflow-hidden border border-border">
-                            <img src={src} alt={l} className="w-full h-full object-cover" />
-                            <span className="absolute inset-x-0 bottom-0 text-[10px] bg-background/80 py-0.5">{l}</span>
-                          </button>
-                        ) : null,
-                      )}
-                    </div>
-                  )}
-                  <button
-                    onClick={() => updateCar(car.id, (c) => ({ services: c.services.filter((x) => x.id !== s.id) }))}
-                    className="text-xs text-muted-foreground hover:text-destructive"
-                  >
-                    Удалить запись
-                  </button>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+                  <Icon name="ChevronRight" size={18} className="text-muted-foreground shrink-0" />
+                </button>
+              );
+            })}
+          </div>
         )}
       </div>
-      <PhotoViewer src={view} onClose={() => setView(null)} />
     </section>
   );
 };

@@ -12,6 +12,7 @@ export interface ServiceRecord {
   parts: LineItem[];
   orderPhoto?: string;
   receiptPhoto?: string;
+  photos?: string[];
   note?: string;
 }
 

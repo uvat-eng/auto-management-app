@@ -4,14 +4,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Icon from "@/components/ui/icon";
 import PhotoSlot from "./PhotoSlot";
+import PhotoStrip from "./PhotoStrip";
+import { Textarea } from "@/components/ui/textarea";
 import { Car, LineItem, ServiceRecord, formatMoney, today, uid } from "@/lib/fleet";
 import { useFleet } from "@/hooks/use-fleet";
 import { toast } from "sonner";
 
 interface Props {
   car?: Car;
+  record?: ServiceRecord;
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  onSaved?: (id: string) => void;
 }
 
 const ItemList = ({ title, items, onChange }: { title: string; items: LineItem[]; onChange: (i: LineItem[]) => void }) => (
@@ -47,7 +51,7 @@ const ItemList = ({ title, items, onChange }: { title: string; items: LineItem[]
   </div>
 );
 
-const ServiceForm = ({ car, open, onOpenChange }: Props) => {
+const ServiceForm = ({ car, record, open, onOpenChange, onSaved }: Props) => {
   const { updateCar } = useFleet();
   const [date, setDate] = useState(today());
   const [mileage, setMileage] = useState("");
@@ -58,10 +62,25 @@ const ServiceForm = ({ car, open, onOpenChange }: Props) => {
   const [receipt, setReceipt] = useState<string>();
   const [nextKm, setNextKm] = useState("");
   const [nextDate, setNextDate] = useState("");
+  const [note, setNote] = useState("");
+  const [photos, setPhotos] = useState<string[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (open && car) {
+    if (open && car && record) {
+      setDate(record.date);
+      setMileage(String(record.mileage));
+      setTitle(record.title);
+      setWorks(record.works.length ? record.works : [{ name: "", cost: 0 }]);
+      setParts(record.parts.length ? record.parts : [{ name: "", cost: 0 }]);
+      setOrder(record.orderPhoto);
+      setReceipt(record.receiptPhoto);
+      setNote(record.note ?? "");
+      setPhotos(record.photos ?? []);
+      setNextKm(car.nextServiceKm ? String(car.nextServiceKm) : "");
+      setNextDate(car.nextServiceDate ?? "");
+      setError("");
+    } else if (open && car) {
       setDate(today());
       setMileage(String(car.mileage));
       setTitle("");
@@ -69,13 +88,16 @@ const ServiceForm = ({ car, open, onOpenChange }: Props) => {
       setParts([{ name: "", cost: 0 }]);
       setOrder(undefined);
       setReceipt(undefined);
+      setNote("");
+      setPhotos([]);
       setNextKm(String(car.mileage + 10000));
       const d = new Date();
       d.setFullYear(d.getFullYear() + 1);
       setNextDate(d.toISOString().slice(0, 10));
       setError("");
     }
-  }, [open, car]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, car?.id, record?.id]);
 
   if (!car) return null;
 
@@ -88,7 +110,7 @@ const ServiceForm = ({ car, open, onOpenChange }: Props) => {
     if (!title.trim()) return setError("Укажите вид работ");
     if (!km) return setError("Укажите пробег на момент ТО");
     const rec: ServiceRecord = {
-      id: uid(),
+      id: record?.id ?? uid(),
       date,
       mileage: km,
       title: title.trim(),
@@ -96,22 +118,25 @@ const ServiceForm = ({ car, open, onOpenChange }: Props) => {
       parts: clean(parts),
       orderPhoto: order,
       receiptPhoto: receipt,
+      photos,
+      note: note.trim() || undefined,
     };
     updateCar(car.id, (c) => ({
-      services: [rec, ...c.services].sort((a, b) => b.date.localeCompare(a.date)),
+      services: [rec, ...c.services.filter((x) => x.id !== rec.id)].sort((a, b) => b.date.localeCompare(a.date)),
       mileage: Math.max(c.mileage, km),
       nextServiceKm: nextKm ? Number(nextKm) : undefined,
       nextServiceDate: nextDate || undefined,
     }));
-    toast.success("ТО записано");
+    toast.success(record ? "Изменения сохранены" : "ТО записано");
     onOpenChange(false);
+    onSaved?.(rec.id);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-card border-border max-w-[520px] max-h-[92dvh] overflow-y-auto rounded-3xl">
         <DialogHeader>
-          <DialogTitle className="font-head text-2xl">Новое ТО</DialogTitle>
+          <DialogTitle className="font-head text-2xl">{record ? "Изменить ТО" : "Новое ТО"}</DialogTitle>
           <DialogDescription>
             {car.make} · {car.plate}
           </DialogDescription>
@@ -148,6 +173,18 @@ const ServiceForm = ({ car, open, onOpenChange }: Props) => {
             </div>
           </div>
 
+          <PhotoStrip title="Фото работ и деталей" photos={photos} onChange={setPhotos} />
+
+          <div className="space-y-1.5">
+            <Label>Описание</Label>
+            <Textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Что делали, что посоветовал мастер, на что обратить внимание"
+              className="bg-background min-h-[90px]"
+            />
+          </div>
+
           <div className="rounded-2xl bg-background border border-border p-4 space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Следующее ТО</p>
             <div className="grid grid-cols-2 gap-3">
@@ -164,7 +201,7 @@ const ServiceForm = ({ car, open, onOpenChange }: Props) => {
 
           {error && <p className="text-sm text-destructive">{error}</p>}
           <button type="submit" className="w-full h-12 rounded-full bg-primary text-primary-foreground font-medium active:scale-[0.98] transition-transform">
-            Сохранить ТО
+            {record ? "Сохранить изменения" : "Сохранить ТО"}
           </button>
         </form>
       </DialogContent>

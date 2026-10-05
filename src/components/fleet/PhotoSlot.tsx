@@ -25,14 +25,18 @@ const PhotoSlot = ({ label, value, onChange, onView, className = "" }: Props) =>
 
   return (
     <div className={`relative aspect-[4/3] rounded-2xl overflow-hidden border border-border bg-muted ${className}`}>
-      <input ref={ref} type="file" accept="image/*" capture="environment" hidden onChange={(e) => pick(e.target.files?.[0])} />
+      <input ref={ref} type="file" accept="image/*" hidden onChange={(e) => {
+        pick(e.target.files?.[0]);
+        e.target.value = "";
+      }} />
       {value ? (
         <>
-          <button onClick={() => onView?.(value)} className="w-full h-full">
+          <button type="button" onClick={() => onView?.(value)} className="w-full h-full">
             <img src={value} alt={label} className="w-full h-full object-cover" />
           </button>
           <span className="absolute left-2 bottom-2 text-[11px] px-2 py-0.5 rounded-full bg-background/80 backdrop-blur">{label}</span>
           <button
+            type="button"
             onClick={() => onChange(undefined)}
             aria-label="Удалить"
             className="absolute right-2 top-2 w-7 h-7 rounded-full bg-background/80 grid place-items-center hover:text-destructive"
@@ -41,7 +45,7 @@ const PhotoSlot = ({ label, value, onChange, onView, className = "" }: Props) =>
           </button>
         </>
       ) : (
-        <button onClick={() => ref.current?.click()} className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+        <button type="button" onClick={() => ref.current?.click()} className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors">
           <Icon name="Camera" size={22} />
           <span className="text-xs">{label}</span>
         </button>

@@ -7,6 +7,7 @@ import MileageDialog from "@/components/fleet/MileageDialog";
 import CarSheet, { CarSheetTab } from "@/components/fleet/CarSheet";
 import ServiceScreen from "@/components/fleet/ServiceScreen";
 import ServiceForm from "@/components/fleet/ServiceForm";
+import ServiceDetail from "@/components/fleet/ServiceDetail";
 import RemindersScreen from "@/components/fleet/RemindersScreen";
 import AddCarDialog from "@/components/fleet/AddCarDialog";
 import { FleetProvider, useFleet } from "@/hooks/use-fleet";
@@ -15,14 +16,17 @@ import { Reminder, buildReminders } from "@/lib/fleet";
 type Overlay = null | "mileage" | "car" | "add" | "service";
 
 const FleetApp = () => {
-  const { cars, ready } = useFleet();
+  const { cars, ready, updateCar } = useFleet();
   const [index, setIndex] = useState(0);
   const [tab, setTab] = useState<Tab>("fleet");
   const [overlay, setOverlay] = useState<Overlay>(null);
   const [sheetTab, setSheetTab] = useState<CarSheetTab>("photos");
+  const [recordId, setRecordId] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
 
   const safeIndex = Math.min(index, Math.max(cars.length - 1, 0));
   const car = cars[safeIndex];
+  const record = recordId ? car?.services.find((x) => x.id === recordId) : undefined;
   const reminders = useMemo(() => buildReminders(cars), [cars]);
   const alerts = reminders.filter((r) => r.urgent).length;
 
@@ -48,20 +52,29 @@ const FleetApp = () => {
     else setTab("service");
   };
 
-  const close = (v: boolean) => !v && setOverlay(null);
+  const close = (v: boolean) => {
+    if (v) return;
+    setOverlay(null);
+    setEditing(false);
+  };
 
-  const overlayRef = useRef(overlay);
-  overlayRef.current = overlay;
+  const openRecord = (id: string) => setRecordId(id);
+
+  const stateRef = useRef({ overlay, recordId });
+  stateRef.current = { overlay, recordId };
 
   useEffect(() => {
-    if ((tab !== "fleet" || overlay) && !window.history.state?.inner) {
+    if ((tab !== "fleet" || overlay || recordId) && !window.history.state?.inner) {
       window.history.pushState({ ...window.history.state, inner: true }, "");
     }
-  }, [tab, overlay]);
+  }, [tab, overlay, recordId]);
 
   useEffect(() => {
     const onPop = () => {
-      if (overlayRef.current) setOverlay(null);
+      if (stateRef.current.overlay) {
+        setOverlay(null);
+        setEditing(false);
+      } else if (stateRef.current.recordId) setRecordId(null);
       else setTab("fleet");
     };
     window.addEventListener("popstate", onPop);
@@ -78,14 +91,37 @@ const FleetApp = () => {
           <CarStats car={car} onMileage={() => setOverlay("mileage")} onInsurance={() => openSheet("insurance")} onService={() => setTab("service")} />
         </>
       )}
-      {ready && tab === "service" && <ServiceScreen car={car} cars={cars} onSelectCar={setIndex} onAdd={() => setOverlay("service")} onBack={() => setTab("fleet")} />}
+      {ready && tab === "service" && <ServiceScreen car={car} cars={cars} onSelectCar={setIndex} onAdd={() => setOverlay("service")} onBack={() => setTab("fleet")} onOpenRecord={openRecord} />}
       {ready && tab === "reminders" && <RemindersScreen reminders={reminders} onOpen={openReminder} onBack={() => setTab("fleet")} />}
 
       <BottomNav tab={tab} onChange={setTab} alerts={alerts} />
 
       <MileageDialog car={car} open={overlay === "mileage"} onOpenChange={close} />
-      <CarSheet car={car} open={overlay === "car"} tab={sheetTab} onTabChange={setSheetTab} onOpenChange={close} />
-      <ServiceForm car={car} open={overlay === "service"} onOpenChange={close} />
+      <CarSheet
+        car={car}
+        open={overlay === "car"}
+        tab={sheetTab}
+        onTabChange={setSheetTab}
+        onOpenChange={close}
+        onOpenRecord={(id) => {
+          setOverlay(null);
+          setRecordId(id);
+        }}
+      />
+      <ServiceDetail
+        car={car}
+        record={record}
+        onClose={() => setRecordId(null)}
+        onEdit={() => {
+          setEditing(true);
+          setOverlay("service");
+        }}
+        onDelete={() => {
+          if (car && recordId) updateCar(car.id, (c) => ({ services: c.services.filter((x) => x.id !== recordId) }));
+          setRecordId(null);
+        }}
+      />
+      <ServiceForm car={car} record={editing ? record : undefined} open={overlay === "service"} onOpenChange={close} onSaved={(id) => setRecordId(id)} />
       <AddCarDialog
         open={overlay === "add"}
         onOpenChange={close}
