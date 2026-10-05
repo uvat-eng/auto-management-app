@@ -49,8 +49,13 @@ const CarCarousel = ({ cars, index, onIndexChange, onOpenCar, onAddCar }: Props)
           {cars.map((c) => (
             <CarouselItem key={c.id} className="h-full pl-0">
               <button onClick={onOpenCar} className="relative block w-full h-full photo-fade grain" aria-label="Открыть карточку автомобиля">
-                {c.photos[0] ? (
-                  <img src={c.photos[0]} alt={c.make} className="w-full h-full object-cover [object-position:center_60%]" draggable={false} />
+                {c.hero ? (
+                  <img src={c.hero} alt={c.make} className="absolute inset-0 w-full h-full object-cover object-bottom" draggable={false} />
+                ) : c.photos[0] ? (
+                  <>
+                    <img src={c.photos[0]} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl brightness-[0.35]" draggable={false} />
+                    <img src={c.photos[0]} alt={c.make} className="absolute inset-0 w-full h-full object-contain pb-14" draggable={false} />
+                  </>
                 ) : (
                   <div className="w-full h-full grid place-items-center bg-muted text-muted-foreground">
                     <Icon name="Car" size={72} strokeWidth={1} />

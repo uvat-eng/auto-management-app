@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, ReactNode } from "react";
-import { Car, seedCars, today } from "@/lib/fleet";
+import { Car, SEED_HERO, seedCars, today } from "@/lib/fleet";
 
 const DB_NAME = "tvoy-avtopark";
 const STORE = "kv";
@@ -50,7 +50,7 @@ export const FleetProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     readCars()
-      .then((stored) => setCars(stored ?? seedCars()))
+      .then((stored) => setCars(stored ? stored.map((c) => (c.hero || !SEED_HERO[c.id] ? c : { ...c, hero: SEED_HERO[c.id] })) : seedCars()))
       .catch(() => setCars(seedCars()))
       .finally(() => {
         loaded.current = true;

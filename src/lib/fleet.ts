@@ -33,6 +33,7 @@ export interface Car {
   year?: string;
   vin?: string;
   photos: string[];
+  hero?: string;
   sts?: string;
   pts?: string;
   mileage: number;
@@ -163,6 +164,10 @@ export const compressImage = (file: File, max = 1280, quality = 0.72): Promise<s
 
 const IMG = "https://cdn.poehali.dev/projects/508cc4dd-a6fa-4f8a-b231-26fde3c72eed/files";
 
+export const SEED_HERO: Record<string, string> = {
+  "car-s500": `${IMG}/3254bc5e-fd7b-4eaf-908d-cdd63b0cc56e.jpg`,
+};
+
 export const seedCars = (): Car[] => [
   {
     id: "car-s500",
@@ -171,6 +176,7 @@ export const seedCars = (): Car[] => [
     year: "2019",
     vin: "WDD2221861A000777",
     photos: [`${IMG}/cf139825-62d4-47d1-b1fb-9d972547b449.jpg`],
+    hero: SEED_HERO["car-s500"],
     mileage: 184250,
     mileageLog: [
       { date: shiftDays(-30), km: 182900 },
