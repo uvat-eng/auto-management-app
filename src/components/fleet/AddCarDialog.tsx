@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Icon from "@/components/ui/icon";
+import PhotoTips from "./PhotoTips";
 import { Car, compressImage, today, uid } from "@/lib/fleet";
 import { useFleet } from "@/hooks/use-fleet";
 import { toast } from "sonner";
@@ -89,6 +90,7 @@ const AddCarDialog = ({ open, onOpenChange, onAdded }: Props) => {
               </span>
             )}
           </button>
+          <PhotoTips className="-mt-2" />
           <div className="space-y-1.5">
             <Label>Марка и модель</Label>
             <Input value={make} onChange={(e) => setMake(e.target.value)} placeholder="Mercedes-Benz S 500" className="bg-background" />

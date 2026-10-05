@@ -1,5 +1,6 @@
 import Icon from "@/components/ui/icon";
 import { Car } from "@/lib/fleet";
+import PhotoTips from "./PhotoTips";
 
 interface Props {
   car: Car;
@@ -31,10 +32,11 @@ const StudioCover = ({ car, onRedo, onView }: Props) => {
           </div>
         )}
       </div>
-      <div className="flex items-center justify-between gap-3 p-4">
+      <div className="flex items-start justify-between gap-3 p-4">
         <div className="min-w-0">
           <p className="font-medium">Обложка главного экрана</p>
           <p className="text-xs text-muted-foreground">{failed ? "Не получилось — попробуйте ещё раз или другое фото" : "Значок ✦ на любом фото — сделать обложкой"}</p>
+          <PhotoTips className="mt-1.5" />
         </div>
         <button
           onClick={onRedo}
