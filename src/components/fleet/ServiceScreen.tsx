@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Icon from "@/components/ui/icon";
 import PhotoViewer from "./PhotoViewer";
+import BackButton from "./BackButton";
 import { Car, formatDate, formatKm, formatMoney, formatTerm, serviceLeft, serviceTotal } from "@/lib/fleet";
 import { useFleet } from "@/hooks/use-fleet";
 
@@ -10,9 +11,10 @@ interface Props {
   cars: Car[];
   onSelectCar: (i: number) => void;
   onAdd: () => void;
+  onBack: () => void;
 }
 
-const ServiceScreen = ({ car, cars, onSelectCar, onAdd }: Props) => {
+const ServiceScreen = ({ car, cars, onSelectCar, onAdd, onBack }: Props) => {
   const { updateCar } = useFleet();
   const [view, setView] = useState<string | null>(null);
 
@@ -23,6 +25,7 @@ const ServiceScreen = ({ car, cars, onSelectCar, onAdd }: Props) => {
   return (
     <section className="[grid-area:photo/photo/due/due] min-h-0 overflow-y-auto no-scrollbar animate-fade-in">
       <div className="max-w-3xl mx-auto px-6 py-6 space-y-6">
+        <BackButton onClick={onBack} />
         <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-6 px-6">
           {cars.map((c, i) => (
             <button

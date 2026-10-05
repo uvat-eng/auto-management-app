@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import Icon from "@/components/ui/icon";
 import PhotoSlot from "./PhotoSlot";
+import BackButton from "./BackButton";
 import PhotoViewer from "./PhotoViewer";
 import { Car, MAX_PHOTOS, Policy, compressImage, daysUntil, formatDate, formatKm, formatTerm } from "@/lib/fleet";
 import { useFleet } from "@/hooks/use-fleet";
@@ -144,7 +145,8 @@ const CarSheet = ({ car, open, tab, onTabChange, onOpenChange }: Props) => {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[92dvh] rounded-t-[32px] bg-card border-border p-0 flex flex-col">
-        <SheetHeader className="px-6 pt-6 pb-3 text-left">
+        <SheetHeader className="px-6 pt-5 pb-3 text-left space-y-3">
+          <BackButton onClick={() => onOpenChange(false)} className="self-start" />
           <SheetTitle className="font-head text-2xl">{car.make}</SheetTitle>
           <SheetDescription>
             {car.plate}

@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 import { Switch } from "@/components/ui/switch";
 import { Reminder } from "@/lib/fleet";
+import BackButton from "./BackButton";
 import { toast } from "sonner";
 
 interface Props {
   reminders: Reminder[];
   onOpen: (r: Reminder) => void;
+  onBack: () => void;
 }
 
 const ICONS: Record<Reminder["kind"], string> = {
@@ -18,7 +20,7 @@ const ICONS: Record<Reminder["kind"], string> = {
 
 const NOTIFY_KEY = "avtopark-notify";
 
-const RemindersScreen = ({ reminders, onOpen }: Props) => {
+const RemindersScreen = ({ reminders, onOpen, onBack }: Props) => {
   const [notify, setNotify] = useState(() => localStorage.getItem(NOTIFY_KEY) === "1");
 
   useEffect(() => {
@@ -60,6 +62,7 @@ const RemindersScreen = ({ reminders, onOpen }: Props) => {
   return (
     <section className="[grid-area:photo/photo/due/due] min-h-0 overflow-y-auto no-scrollbar animate-fade-in">
       <div className="max-w-3xl mx-auto px-6 py-6 space-y-6">
+        <BackButton onClick={onBack} />
         <div>
           <h2 className="font-head font-semibold text-[44px] sm:text-[56px] tracking-[-0.035em] leading-none text-gold">
             {urgent.length ? `${urgent.length} срочн.` : "Всё в порядке"}

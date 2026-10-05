@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import AppHeader, { HeadLink } from "@/components/fleet/AppHeader";
 import CarCarousel from "@/components/fleet/CarCarousel";
 import CarStats from "@/components/fleet/CarStats";
@@ -50,6 +50,24 @@ const FleetApp = () => {
 
   const close = (v: boolean) => !v && setOverlay(null);
 
+  const overlayRef = useRef(overlay);
+  overlayRef.current = overlay;
+
+  useEffect(() => {
+    if ((tab !== "fleet" || overlay) && !window.history.state?.inner) {
+      window.history.pushState({ ...window.history.state, inner: true }, "");
+    }
+  }, [tab, overlay]);
+
+  useEffect(() => {
+    const onPop = () => {
+      if (overlayRef.current) setOverlay(null);
+      else setTab("fleet");
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
   return (
     <div className="fleet-grid bg-background text-foreground text-[15px]">
       <AppHeader active={headActive} onNavigate={onHead} onAddCar={() => setOverlay("add")} />
@@ -60,8 +78,8 @@ const FleetApp = () => {
           <CarStats car={car} onMileage={() => setOverlay("mileage")} onInsurance={() => openSheet("insurance")} onService={() => setTab("service")} />
         </>
       )}
-      {ready && tab === "service" && <ServiceScreen car={car} cars={cars} onSelectCar={setIndex} onAdd={() => setOverlay("service")} />}
-      {ready && tab === "reminders" && <RemindersScreen reminders={reminders} onOpen={openReminder} />}
+      {ready && tab === "service" && <ServiceScreen car={car} cars={cars} onSelectCar={setIndex} onAdd={() => setOverlay("service")} onBack={() => setTab("fleet")} />}
+      {ready && tab === "reminders" && <RemindersScreen reminders={reminders} onOpen={openReminder} onBack={() => setTab("fleet")} />}
 
       <BottomNav tab={tab} onChange={setTab} alerts={alerts} />
 
