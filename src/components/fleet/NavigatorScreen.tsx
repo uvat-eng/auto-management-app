@@ -310,15 +310,20 @@ const NavigatorScreen = ({ hidden }: Props) => {
     }
   };
 
-  const makeRoute = async () => {
-    if (!target) return;
+  const [routing, setRouting] = useState(false);
+
+  const makeRoute = async (to: Place | null = target) => {
+    if (!to) return;
     if (!pos) return toast.error("Не знаем, где вы — включите геопозицию");
+    setRouting(true);
     try {
-      const r = await buildRoute(pos, [target.lat, target.lon]);
+      const r = await buildRoute(pos, [to.lat, to.lon]);
       setRoute(r);
       setStepIdx(0);
     } catch (err) {
       toast.error((err as Error).message);
+    } finally {
+      setRouting(false);
     }
   };
 
@@ -406,7 +411,8 @@ const NavigatorScreen = ({ hidden }: Props) => {
                     setTarget(r);
                     setResults([]);
                     setRoute(null);
-                    map.current?.setView([r.lat, r.lon], 13);
+                    if (pos) makeRoute(r);
+                    else map.current?.setView([r.lat, r.lon], 13);
                   }}
                   className="w-full text-left px-4 py-3 text-sm border-b border-border last:border-0 hover:bg-secondary"
                 >
@@ -522,8 +528,8 @@ const NavigatorScreen = ({ hidden }: Props) => {
             <div className="space-y-3">
               <p className="text-sm line-clamp-2">{target.name}</p>
               <div className="flex gap-2">
-                <button onClick={makeRoute} className="flex-1 h-12 rounded-full bg-primary text-primary-foreground font-medium inline-flex items-center justify-center gap-2">
-                  <Icon name="Route" size={18} /> Маршрут
+                <button onClick={() => makeRoute()} disabled={routing} className="flex-1 h-12 rounded-full bg-primary text-primary-foreground font-medium inline-flex items-center justify-center gap-2 disabled:opacity-80">
+                  <Icon name={routing ? "Loader" : "Route"} size={18} className={routing ? "animate-spin" : ""} /> {routing ? "Строим маршрут…" : "Маршрут"}
                 </button>
                 <button onClick={reset} aria-label="Сбросить" className="h-12 w-12 rounded-full border border-border grid place-items-center text-muted-foreground">
                   <Icon name="X" size={18} />
