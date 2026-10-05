@@ -172,6 +172,32 @@ const NavigatorScreen = ({ hidden }: Props) => {
   }, [mode, size.w, size.h, full, hidden]);
 
   useEffect(() => {
+    const el = shell.current;
+    if (!el) return;
+    const pin = () => {
+      if (el.scrollTop || el.scrollLeft) {
+        el.scrollTop = 0;
+        el.scrollLeft = 0;
+      }
+    };
+    const settle = () => {
+      setTimeout(() => {
+        pin();
+        if (window.scrollX || window.scrollY) window.scrollTo(0, 0);
+        map.current?.invalidateSize();
+      }, 120);
+    };
+    el.addEventListener("scroll", pin);
+    el.addEventListener("focusout", settle);
+    window.visualViewport?.addEventListener("resize", settle);
+    return () => {
+      el.removeEventListener("scroll", pin);
+      el.removeEventListener("focusout", settle);
+      window.visualViewport?.removeEventListener("resize", settle);
+    };
+  }, []);
+
+  useEffect(() => {
     if (hidden && !full) return;
     keepAwake(true);
     return () => keepAwake(false);
@@ -270,6 +296,7 @@ const NavigatorScreen = ({ hidden }: Props) => {
 
   const doSearch = async (e: React.FormEvent) => {
     e.preventDefault();
+    (document.activeElement as HTMLElement | null)?.blur();
     if (!query.trim()) return;
     setSearching(true);
     try {
@@ -321,8 +348,9 @@ const NavigatorScreen = ({ hidden }: Props) => {
   return (
     <section
       ref={shell}
-      className={`${full ? "fixed inset-0 z-[2000] nav-full" : "[grid-area:photo/photo/due/due] relative min-h-0"} overflow-hidden bg-background ${hidden && !full ? "hidden" : ""}`}
+      className={`${full ? "fixed inset-0 z-[2000] nav-full" : "[grid-area:photo/photo/due/due] relative min-h-0"} overflow-hidden [overflow:clip] bg-background ${hidden && !full ? "hidden" : ""}`}
     >
+      <div className="absolute inset-0 overflow-hidden [overflow:clip] z-0">
       <div
         ref={box}
         className="absolute z-0 nav-map"
@@ -339,6 +367,7 @@ const NavigatorScreen = ({ hidden }: Props) => {
             : { inset: 0, transform: "none" }
         }
       />
+      </div>
 
       {driving && step ? (
         <div className="absolute left-3 right-3 nav-top z-[500] rounded-3xl bg-card/95 backdrop-blur border border-border p-4 flex items-center gap-4 animate-fade-in">
@@ -360,6 +389,7 @@ const NavigatorScreen = ({ hidden }: Props) => {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Куда едем?"
+                enterKeyHint="search"
                 className="h-12 pl-10 rounded-full bg-card/95 backdrop-blur border-border"
               />
             </div>
