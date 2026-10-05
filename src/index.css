@@ -127,6 +127,7 @@
     @apply bg-background text-foreground font-body antialiased;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
+    touch-action: manipulation;
   }
 }
 
