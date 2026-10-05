@@ -10,6 +10,7 @@ import ServiceForm from "@/components/fleet/ServiceForm";
 import ServiceDetail from "@/components/fleet/ServiceDetail";
 import RemindersScreen from "@/components/fleet/RemindersScreen";
 import NavigatorScreen from "@/components/fleet/NavigatorScreen";
+import InsuranceScreen from "@/components/fleet/InsuranceScreen";
 import AddCarDialog from "@/components/fleet/AddCarDialog";
 import ProfileSheet from "@/components/fleet/ProfileSheet";
 import AuthScreen from "@/components/fleet/AuthScreen";
@@ -34,6 +35,7 @@ const FleetApp = () => {
   const record = recordId ? car?.services.find((x) => x.id === recordId) : undefined;
   const reminders = useMemo(() => buildReminders(cars), [cars]);
   const alerts = reminders.filter((r) => r.urgent).length;
+  const insuranceAlerts = reminders.filter((r) => r.urgent && r.carId === car?.id && (r.kind === "osago" || r.kind === "kasko")).length;
 
   const headActive: HeadLink =
     overlay === "car" && sheetTab === "insurance" ? "insurance" : overlay === "car" && sheetTab === "docs" ? "docs" : tab === "service" ? "service" : "cars";
@@ -46,14 +48,14 @@ const FleetApp = () => {
   const onHead = (to: HeadLink) => {
     if (to === "cars") setTab("fleet");
     if (to === "service") setTab("service");
-    if (to === "insurance") openSheet("insurance");
+    if (to === "insurance") setTab("insurance");
     if (to === "docs") openSheet("docs");
   };
 
   const openReminder = (r: Reminder) => {
     const i = cars.findIndex((c) => c.id === r.carId);
     if (i >= 0) setIndex(i);
-    if (r.kind === "osago" || r.kind === "kasko") openSheet("insurance");
+    if (r.kind === "osago" || r.kind === "kasko") setTab("insurance");
     else setTab("service");
   };
 
@@ -88,16 +90,17 @@ const FleetApp = () => {
 
   return (
     <div className="fleet-grid bg-background text-foreground text-[17px]">
-      <AppHeader active={headActive} onNavigate={onHead} onAddCar={() => setOverlay("add")} onProfile={() => setOverlay("profile")} />
-      <BottomNav tab={tab} onChange={setTab} alerts={alerts} />
+      <AppHeader active={headActive} onNavigate={onHead} onAddCar={() => setOverlay("add")} onProfile={() => setOverlay("profile")} onReminders={() => setTab("reminders")} alerts={alerts} />
+      <BottomNav tab={tab} onChange={setTab} alerts={insuranceAlerts} />
 
       {ready && tab === "fleet" && (
         <>
           <CarCarousel cars={cars} index={safeIndex} onIndexChange={setIndex} onOpenCar={() => openSheet("photos")} onAddCar={() => setOverlay("add")} />
-          <CarStats car={car} onMileage={() => setOverlay("mileage")} onInsurance={() => openSheet("insurance")} onService={() => setTab("service")} />
+          <CarStats car={car} onMileage={() => setOverlay("mileage")} onInsurance={() => setTab("insurance")} onService={() => setTab("service")} />
         </>
       )}
       {ready && tab === "service" && <ServiceScreen car={car} cars={cars} onSelectCar={setIndex} onAdd={() => setOverlay("service")} onBack={() => setTab("fleet")} onOpenRecord={openRecord} />}
+      {ready && tab === "insurance" && <InsuranceScreen car={car} cars={cars} onSelectCar={setIndex} onBack={() => setTab("fleet")} />}
       {tab === "map" && <NavigatorScreen />}
       {ready && tab === "reminders" && <RemindersScreen reminders={reminders} onOpen={openReminder} onBack={() => setTab("fleet")} />}
 

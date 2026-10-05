@@ -19,7 +19,8 @@ import PhotoSlot from "./PhotoSlot";
 import StudioCover from "./StudioCover";
 import BackButton from "./BackButton";
 import PhotoViewer from "./PhotoViewer";
-import { Car, MAX_PHOTOS, Policy, compressImage, daysUntil, formatDate, formatKm, formatTerm } from "@/lib/fleet";
+import PolicyBlock from "./PolicyBlock";
+import { Car, MAX_PHOTOS, compressImage, formatDate, formatKm } from "@/lib/fleet";
 import { useFleet } from "@/hooks/use-fleet";
 import { toast } from "sonner";
 
@@ -34,81 +35,6 @@ interface Props {
   onOpenRecord?: (id: string) => void;
 }
 
-const PolicyCard = ({ title, policy, onSave }: { title: string; policy?: Policy; onSave: (p?: Policy) => void }) => {
-  const [edit, setEdit] = useState(false);
-  const [form, setForm] = useState<Policy>(policy ?? { company: "", number: "", end: "" });
-  const d = daysUntil(policy?.end);
-
-  const save = () => {
-    if (!form.end) return toast.error("Укажите дату окончания полиса");
-    onSave(form);
-    setEdit(false);
-    toast.success(`${title} сохранено`);
-  };
-
-  return (
-    <div className="rounded-3xl border border-border bg-background p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{title}</p>
-          <p className={`font-head text-4xl font-semibold mt-1 ${d === null ? "text-muted-foreground" : d < 0 ? "text-destructive" : d <= 30 ? "text-primary" : "text-foreground"}`}>
-            {policy ? formatTerm(policy.end) : "нет"}
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            setForm(policy ?? { company: "", number: "", end: "" });
-            setEdit((v) => !v);
-          }}
-          className="text-sm text-gold-link hover:underline"
-        >
-          {edit ? "Отмена" : policy ? "Изменить" : "Добавить"}
-        </button>
-      </div>
-      {policy && !edit && (
-        <div className="mt-3 text-sm text-muted-foreground space-y-0.5">
-          <p>до {formatDate(policy.end)}</p>
-          {policy.company && <p>{policy.company}</p>}
-          {policy.number && <p>№ {policy.number}</p>}
-        </div>
-      )}
-      {edit && (
-        <div className="mt-4 space-y-3 animate-fade-in">
-          <div className="space-y-1.5">
-            <Label>Действует до</Label>
-            <Input type="date" value={form.end} onChange={(e) => setForm({ ...form, end: e.target.value })} className="bg-card" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Страховая</Label>
-              <Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className="bg-card" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Номер полиса</Label>
-              <Input value={form.number} onChange={(e) => setForm({ ...form, number: e.target.value })} className="bg-card" />
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <button onClick={save} className="flex-1 h-11 rounded-full bg-primary text-primary-foreground font-medium">
-              Сохранить
-            </button>
-            {policy && (
-              <button
-                onClick={() => {
-                  onSave(undefined);
-                  setEdit(false);
-                }}
-                className="h-11 px-4 rounded-full border border-border text-muted-foreground hover:text-destructive"
-              >
-                Удалить
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
 
 const CarSheet = ({ car, open, tab, onTabChange, onOpenChange, onOpenRecord }: Props) => {
   const { updateCar, removeCar, archiveCar, stylize } = useFleet();
@@ -307,8 +233,8 @@ const CarSheet = ({ car, open, tab, onTabChange, onOpenChange, onOpenRecord }: P
             </TabsContent>
 
             <TabsContent value="insurance" className="mt-0 space-y-4">
-              <PolicyCard key={`o-${car.id}`} title="ОСАГО" policy={car.osago} onSave={(p) => updateCar(car.id, { osago: p })} />
-              <PolicyCard key={`k-${car.id}`} title="КАСКО" policy={car.kasko} onSave={(p) => updateCar(car.id, { kasko: p })} />
+              <PolicyBlock key={`o-${car.id}`} title="ОСАГО" hint="Обязательная страховка" policy={car.osago} onSave={(p) => updateCar(car.id, { osago: p })} />
+              <PolicyBlock key={`k-${car.id}`} title="КАСКО" hint="Добровольная страховка" policy={car.kasko} onSave={(p) => updateCar(car.id, { kasko: p })} />
               <p className="text-xs text-muted-foreground px-1">Напоминание появится за 30 дней до окончания полиса.</p>
             </TabsContent>
           </div>

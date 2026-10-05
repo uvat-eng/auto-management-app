@@ -20,6 +20,7 @@ export interface Policy {
   company: string;
   number: string;
   end: string;
+  photos?: string[];
 }
 
 export interface MileageEntry {

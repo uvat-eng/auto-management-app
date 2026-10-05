@@ -1,6 +1,6 @@
 import Icon from "@/components/ui/icon";
 
-export type Tab = "fleet" | "service" | "map" | "reminders";
+export type Tab = "fleet" | "service" | "insurance" | "map" | "reminders";
 
 interface Props {
   tab: Tab;
@@ -11,8 +11,8 @@ interface Props {
 const ITEMS: { id: Tab; label: string; icon: string }[] = [
   { id: "fleet", label: "Машины", icon: "CarFront" },
   { id: "service", label: "ТО", icon: "Wrench" },
-  { id: "map", label: "Навигатор", icon: "Navigation" },
-  { id: "reminders", label: "Сроки", icon: "Bell" },
+  { id: "insurance", label: "Страховки", icon: "ShieldCheck" },
+  { id: "map", label: "Карта", icon: "Navigation" },
 ];
 
 const BottomNav = ({ tab, onChange, alerts }: Props) => (
@@ -27,7 +27,7 @@ const BottomNav = ({ tab, onChange, alerts }: Props) => (
       >
         <Icon name={it.icon} size={20} />
         <span>{it.label}</span>
-        {it.id === "reminders" && alerts > 0 && (
+        {it.id === "insurance" && alerts > 0 && (
           <span className="absolute top-1.5 right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-white text-[12.5px] leading-[18px] text-center font-semibold">
             {alerts}
           </span>
