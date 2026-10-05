@@ -1,7 +1,7 @@
-const CACHE = "avtopark-shell-v1";
+const CACHE = "avtopark-shell-v2";
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(["/", "/manifest.webmanifest", "/icon-192.png"])));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(["/", "/manifest.webmanifest", "/icon-192.png", "/wolf-left.png", "/wolf-right.png", "/intro.mp3"])));
   self.skipWaiting();
 });
 
@@ -26,7 +26,7 @@ self.addEventListener("fetch", (e) => {
     );
     return;
   }
-  if (url.pathname.startsWith("/assets/") || /\.(png|svg|webmanifest|woff2?)$/.test(url.pathname)) {
+  if (url.pathname.startsWith("/assets/") || /\.(png|svg|webmanifest|woff2?|mp3)$/.test(url.pathname)) {
     e.respondWith(
       caches.match(req).then(
         (hit) =>
