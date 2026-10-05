@@ -29,7 +29,58 @@ const getWorker = () => {
   return worker;
 };
 
-const cutout = (image: string) =>
+const CUTOUT_URL = "https://functions.poehali.dev/e7ef04d4-b497-4289-b9b0-532eb8e07605";
+
+const loadImg = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Не удалось открыть фото"));
+    img.src = src;
+  });
+
+const serverCutout = async (image: string): Promise<Cutout> => {
+  const img = await loadImg(image);
+  const scale = Math.min(1, 1280 / Math.max(img.naturalWidth, img.naturalHeight));
+  const w = Math.round(img.naturalWidth * scale);
+  const h = Math.round(img.naturalHeight * scale);
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  const g = c.getContext("2d", { willReadFrequently: true })!;
+  g.drawImage(img, 0, 0, w, h);
+  const body = JSON.stringify({ image: c.toDataURL("image/jpeg", 0.82) });
+
+  let mask: string | undefined;
+  for (let i = 0; i < 3 && !mask; i++) {
+    try {
+      const r = await fetch(CUTOUT_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body });
+      if (r.ok) mask = (await r.json()).mask;
+    } catch {
+      /* retry */
+    }
+  }
+  if (!mask) throw new Error("server");
+
+  const m = await loadImg(mask);
+  const mc = document.createElement("canvas");
+  mc.width = w;
+  mc.height = h;
+  const mg = mc.getContext("2d", { willReadFrequently: true })!;
+  mg.imageSmoothingQuality = "high";
+  mg.drawImage(m, 0, 0, w, h);
+  const md = mg.getImageData(0, 0, w, h).data;
+  const px = g.getImageData(0, 0, w, h);
+  const d = px.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const a = (md[i] / 255 - 0.3) / 0.45;
+    d[i + 3] = Math.round(255 * Math.max(0, Math.min(1, a)));
+  }
+  return { width: w, height: h, data: d };
+};
+
+const deviceCutout = (image: string) =>
   new Promise<Cutout>((resolve, reject) => {
     const id = ++seq;
     waiting.set(id, { resolve, reject });
@@ -230,6 +281,14 @@ const compose = (cut: Cutout, variant: number) => {
   g.fillRect(0, 0, W, H);
 
   return c.toDataURL("image/jpeg", 0.85);
+};
+
+const cutout = async (image: string) => {
+  try {
+    return await serverCutout(image);
+  } catch {
+    return deviceCutout(image);
+  }
 };
 
 export const makeStudioPhoto = async (image: string, variant = 0) => compose(await cutout(image), variant);
