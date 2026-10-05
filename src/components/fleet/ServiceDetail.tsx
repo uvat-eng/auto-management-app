@@ -57,7 +57,7 @@ const ServiceDetail = ({ car, record, onClose, onEdit, onDelete }: Props) => {
 
   return (
     <Sheet open={!!record} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent side="bottom" className="h-[100dvh] sm:h-[92dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] sm:rounded-t-[32px] bg-card border-border p-0 flex flex-col [&>button]:hidden">
+      <SheetContent side="bottom" className="p-0 h-[100dvh] sm:h-[92dvh] pt-[calc(env(safe-area-inset-top)+8px)] pb-[env(safe-area-inset-bottom)] sm:rounded-t-[32px] bg-card border-border flex flex-col [&>button]:hidden">
         {record && car && (
           <>
             <SheetHeader className="px-6 pt-5 pb-4 text-left space-y-3 border-b border-border">

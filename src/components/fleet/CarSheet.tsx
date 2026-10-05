@@ -73,7 +73,7 @@ const CarSheet = ({ car, open, tab, onTabChange, onOpenChange, onOpenRecord }: P
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[calc(100dvh-env(safe-area-inset-top)-12px)] pb-[env(safe-area-inset-bottom)] rounded-t-[32px] bg-card border-border p-0 flex flex-col">
+      <SheetContent side="bottom" className="p-0 h-[calc(100dvh-env(safe-area-inset-top)-12px)] pb-[env(safe-area-inset-bottom)] rounded-t-[32px] bg-card border-border flex flex-col">
         <SheetHeader className="px-6 pt-5 pb-3 text-left space-y-3">
           <BackButton onClick={() => onOpenChange(false)} className="self-start" />
           <SheetTitle className="font-head text-2xl">{car.make}</SheetTitle>

@@ -70,7 +70,7 @@ const ManualSheet = ({ car, open, onOpenChange }: Props) => {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[calc(100dvh-env(safe-area-inset-top)-12px)] pb-[env(safe-area-inset-bottom)] rounded-t-[32px] bg-card border-border p-0 flex flex-col [&>button]:hidden">
+      <SheetContent side="bottom" className="p-0 h-[calc(100dvh-env(safe-area-inset-top)-12px)] pb-[env(safe-area-inset-bottom)] rounded-t-[32px] bg-card border-border flex flex-col [&>button]:hidden">
         <SheetHeader className="px-6 pt-5 pb-4 text-left space-y-3 border-b border-border">
           <BackButton onClick={() => onOpenChange(false)} className="self-start" />
           <div>
