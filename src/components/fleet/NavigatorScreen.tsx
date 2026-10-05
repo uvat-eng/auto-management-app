@@ -55,6 +55,7 @@ const NavigatorScreen = ({ hidden }: Props) => {
   const me = useRef<L.Marker | null>(null);
   const dest = useRef<L.Marker | null>(null);
   const line = useRef<L.Polyline | null>(null);
+  const casing = useRef<L.Polyline | null>(null);
   const watch = useRef<number | null>(null);
 
   const [layerId, setLayerId] = useState(() => localStorage.getItem(LAYER_KEY) || "osm");
@@ -260,7 +261,9 @@ const NavigatorScreen = ({ hidden }: Props) => {
     const m = map.current;
     if (!m) return;
     line.current?.remove();
-    line.current = route ? L.polyline(route.line, { color: "hsl(42,54%,54%)", weight: 6, opacity: 0.9 }).addTo(m) : null;
+    casing.current?.remove();
+    casing.current = route ? L.polyline(route.line, { color: "#0b3d1a", weight: 14, opacity: 0.85, lineCap: "round", lineJoin: "round", interactive: false }).addTo(m) : null;
+    line.current = route ? L.polyline(route.line, { color: "#22c55e", weight: 9, opacity: 1, lineCap: "round", lineJoin: "round", interactive: false }).addTo(m) : null;
     if (route && line.current) m.fitBounds(line.current.getBounds(), { padding: [40, 40] });
   }, [route]);
 
