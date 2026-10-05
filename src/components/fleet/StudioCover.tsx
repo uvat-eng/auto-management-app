@@ -18,7 +18,7 @@ const StudioCover = ({ car, onRedo, onView }: Props) => {
         {car.hero && <img src={car.hero} alt="Студийная обложка" onClick={() => onView(car.hero!)} className="w-full h-full object-cover cursor-zoom-in" />}
         {!car.hero && !pending && (
           <div className="absolute inset-0 grid place-items-center text-muted-foreground text-sm px-8 text-center">
-            Добавьте фото — ИИ поставит машину в чёрную студию для главного экрана
+            Добавьте фото — машина встанет в чёрную студию на главном экране
           </div>
         )}
         {pending && (
@@ -26,7 +26,7 @@ const StudioCover = ({ car, onRedo, onView }: Props) => {
             <div className="flex flex-col items-center gap-3 text-gold">
               <Icon name="Sparkles" size={28} className="animate-pulse" />
               <span className="text-sm text-foreground">Ставим машину в студию…</span>
-              <span className="text-xs text-muted-foreground">обычно 10–30 секунд</span>
+              <span className="text-xs text-muted-foreground">первый раз до минуты, дальше быстрее</span>
             </div>
           </div>
         )}
