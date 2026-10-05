@@ -38,6 +38,7 @@ export interface Car {
   heroSource?: string;
   heroStatus?: "pending" | "error";
   heroAttempt?: number;
+  archived?: boolean;
   sts?: string;
   pts?: string;
   mileage: number;

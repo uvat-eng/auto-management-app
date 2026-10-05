@@ -10,10 +10,13 @@ import ServiceForm from "@/components/fleet/ServiceForm";
 import ServiceDetail from "@/components/fleet/ServiceDetail";
 import RemindersScreen from "@/components/fleet/RemindersScreen";
 import AddCarDialog from "@/components/fleet/AddCarDialog";
+import ProfileSheet from "@/components/fleet/ProfileSheet";
+import AuthScreen from "@/components/fleet/AuthScreen";
 import { FleetProvider, useFleet } from "@/hooks/use-fleet";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { Reminder, buildReminders } from "@/lib/fleet";
 
-type Overlay = null | "mileage" | "car" | "add" | "service";
+type Overlay = null | "mileage" | "car" | "add" | "service" | "profile";
 
 const FleetApp = () => {
   const { cars, ready, updateCar } = useFleet();
@@ -83,7 +86,7 @@ const FleetApp = () => {
 
   return (
     <div className="fleet-grid bg-background text-foreground text-[15px]">
-      <AppHeader active={headActive} onNavigate={onHead} onAddCar={() => setOverlay("add")} />
+      <AppHeader active={headActive} onNavigate={onHead} onAddCar={() => setOverlay("add")} onProfile={() => setOverlay("profile")} />
 
       {ready && tab === "fleet" && (
         <>
@@ -122,6 +125,7 @@ const FleetApp = () => {
         }}
       />
       <ServiceForm car={car} record={editing ? record : undefined} open={overlay === "service"} onOpenChange={close} onSaved={(id) => setRecordId(id)} />
+      <ProfileSheet open={overlay === "profile"} onOpenChange={close} />
       <AddCarDialog
         open={overlay === "add"}
         onOpenChange={close}
@@ -134,10 +138,21 @@ const FleetApp = () => {
   );
 };
 
+const Gate = () => {
+  const { user, checking } = useAuth();
+  if (checking) return <div className="min-h-[100dvh] bg-background" />;
+  if (!user) return <AuthScreen />;
+  return (
+    <FleetProvider key={user.id}>
+      <FleetApp />
+    </FleetProvider>
+  );
+};
+
 const Index = () => (
-  <FleetProvider>
-    <FleetApp />
-  </FleetProvider>
+  <AuthProvider>
+    <Gate />
+  </AuthProvider>
 );
 
 export default Index;

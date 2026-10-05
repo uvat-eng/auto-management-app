@@ -111,7 +111,7 @@ const PolicyCard = ({ title, policy, onSave }: { title: string; policy?: Policy;
 };
 
 const CarSheet = ({ car, open, tab, onTabChange, onOpenChange, onOpenRecord }: Props) => {
-  const { updateCar, removeCar, stylize } = useFleet();
+  const { updateCar, removeCar, archiveCar, stylize } = useFleet();
   const fileRef = useRef<HTMLInputElement>(null);
   const [view, setView] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -267,16 +267,27 @@ const CarSheet = ({ car, open, tab, onTabChange, onOpenChange, onOpenRecord }: P
                 <Input value={car.vin ?? ""} onChange={(e) => updateCar(car.id, { vin: e.target.value.toUpperCase() })} className="bg-background font-mono" />
               </div>
 
+              <button
+                onClick={() => {
+                  archiveCar(car.id, true);
+                  onOpenChange(false);
+                  toast.success(`${car.make} в архиве`, { description: "Данные сохранены. Вернуть можно в меню профиля." });
+                }}
+                className="w-full h-11 rounded-full border border-border text-foreground hover:border-muted-foreground transition-colors inline-flex items-center justify-center gap-2"
+              >
+                <Icon name="Archive" size={16} /> В архив — продал или не езжу
+              </button>
+
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <button className="w-full h-11 rounded-full border border-border text-muted-foreground hover:text-destructive hover:border-destructive transition-colors">
+                  <button className="w-full h-11 rounded-full text-sm text-muted-foreground hover:text-destructive transition-colors">
                     Удалить автомобиль
                   </button>
                 </AlertDialogTrigger>
                 <AlertDialogContent className="bg-card border-border rounded-3xl">
                   <AlertDialogHeader>
                     <AlertDialogTitle>Удалить {car.make}?</AlertDialogTitle>
-                    <AlertDialogDescription>Фото, история ТО и страховки этой машины будут удалены.</AlertDialogDescription>
+                    <AlertDialogDescription>Фото, история ТО и страховки этой машины будут удалены. Если просто продали машину — лучше уберите её в архив.</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel className="rounded-full">Отмена</AlertDialogCancel>
