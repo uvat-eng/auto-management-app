@@ -9,9 +9,11 @@ import ServiceScreen from "@/components/fleet/ServiceScreen";
 import ServiceForm from "@/components/fleet/ServiceForm";
 import ServiceDetail from "@/components/fleet/ServiceDetail";
 import RemindersScreen from "@/components/fleet/RemindersScreen";
+import NavigatorScreen from "@/components/fleet/NavigatorScreen";
 import AddCarDialog from "@/components/fleet/AddCarDialog";
 import ProfileSheet from "@/components/fleet/ProfileSheet";
 import AuthScreen from "@/components/fleet/AuthScreen";
+import RecoveryDialog from "@/components/fleet/RecoveryDialog";
 import { FleetProvider, useFleet } from "@/hooks/use-fleet";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { Reminder, buildReminders } from "@/lib/fleet";
@@ -95,6 +97,7 @@ const FleetApp = () => {
         </>
       )}
       {ready && tab === "service" && <ServiceScreen car={car} cars={cars} onSelectCar={setIndex} onAdd={() => setOverlay("service")} onBack={() => setTab("fleet")} onOpenRecord={openRecord} />}
+      {tab === "map" && <NavigatorScreen />}
       {ready && tab === "reminders" && <RemindersScreen reminders={reminders} onOpen={openReminder} onBack={() => setTab("fleet")} />}
 
       <BottomNav tab={tab} onChange={setTab} alerts={alerts} />
@@ -145,6 +148,7 @@ const Gate = () => {
   return (
     <FleetProvider key={user.id}>
       <FleetApp />
+      <RecoveryDialog />
     </FleetProvider>
   );
 };

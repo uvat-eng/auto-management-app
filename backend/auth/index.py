@@ -35,6 +35,16 @@ def check_password(password: str, stored: str) -> bool:
     return hmac.compare_digest(calc, digest)
 
 
+def new_recovery() -> str:
+    alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    raw = "".join(secrets.choice(alphabet) for _ in range(12))
+    return f"{raw[:4]}-{raw[4:8]}-{raw[8:]}"
+
+
+def norm_code(code: str) -> str:
+    return re.sub(r"[^A-Z0-9]", "", str(code or "").upper())
+
+
 def new_session(cur, user_id: int) -> str:
     token = secrets.token_hex(32)
     cur.execute(
@@ -72,6 +82,15 @@ def handler(event: dict, context) -> dict:
         body = json.loads(event.get("body") or "{}")
         action = body.get("action")
 
+        if action == "new_code":
+            cur.execute(f"SELECT user_id FROM {SCHEMA}.sessions WHERE token = %s AND expires_at > NOW()", (token,))
+            row = cur.fetchone()
+            if not row:
+                return reply(401, {"error": "Нужно войти"})
+            code = new_recovery()
+            cur.execute(f"UPDATE {SCHEMA}.users SET recovery_hash = %s WHERE id = %s", (hash_password(norm_code(code)), row[0]))
+            return reply(200, {"recovery": code})
+
         if action == "logout":
             if token:
                 cur.execute(f"UPDATE {SCHEMA}.sessions SET expires_at = NOW() WHERE token = %s", (token,))
@@ -79,6 +98,22 @@ def handler(event: dict, context) -> dict:
 
         login = str(body.get("login") or "").strip().lower()
         password = str(body.get("password") or "")
+
+        if action == "reset":
+            if len(password) < 6:
+                return reply(400, {"error": "Новый пароль должен быть не короче 6 символов"})
+            cur.execute(f"SELECT id, recovery_hash FROM {SCHEMA}.users WHERE login = %s", (login,))
+            row = cur.fetchone()
+            if not row or not row[1] or not check_password(norm_code(body.get("code")), row[1]):
+                return reply(401, {"error": "Неверный логин или код восстановления"})
+            code = new_recovery()
+            cur.execute(
+                f"UPDATE {SCHEMA}.users SET password_hash = %s, recovery_hash = %s WHERE id = %s",
+                (hash_password(password), hash_password(norm_code(code)), row[0]),
+            )
+            cur.execute(f"UPDATE {SCHEMA}.sessions SET expires_at = NOW() WHERE user_id = %s", (row[0],))
+            return reply(200, {"token": new_session(cur, row[0]), "user": {"id": row[0], "login": login}, "recovery": code})
+
         if not LOGIN_RE.match(login):
             return reply(400, {"error": "Логин: от 3 символов, латиница, цифры, точка, дефис или @"})
         if len(password) < 6:
@@ -90,12 +125,13 @@ def handler(event: dict, context) -> dict:
             cur.execute(f"SELECT 1 FROM {SCHEMA}.users WHERE login = %s", (login,))
             if cur.fetchone():
                 return reply(409, {"error": "Такой логин уже занят"})
+            code = new_recovery()
             cur.execute(
-                f"INSERT INTO {SCHEMA}.users (login, password_hash) VALUES (%s, %s) RETURNING id",
-                (login, hash_password(password)),
+                f"INSERT INTO {SCHEMA}.users (login, password_hash, recovery_hash) VALUES (%s, %s, %s) RETURNING id",
+                (login, hash_password(password), hash_password(norm_code(code))),
             )
             user_id = cur.fetchone()[0]
-            return reply(200, {"token": new_session(cur, user_id), "user": {"id": user_id, "login": login}})
+            return reply(200, {"token": new_session(cur, user_id), "user": {"id": user_id, "login": login}, "recovery": code})
 
         if action == "login":
             cur.execute(f"SELECT id, password_hash FROM {SCHEMA}.users WHERE login = %s", (login,))

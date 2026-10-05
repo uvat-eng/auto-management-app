@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useFleet } from "@/hooks/use-fleet";
 import { formatKm } from "@/lib/fleet";
 import { toast } from "sonner";
+import { authApi } from "@/lib/api";
 
 interface Props {
   open: boolean;
@@ -14,7 +15,7 @@ interface Props {
 }
 
 const ProfileSheet = ({ open, onOpenChange }: Props) => {
-  const { user, logout } = useAuth();
+  const { user, logout, setRecovery } = useAuth();
   const { cars, archived, sync, archiveCar } = useFleet();
   const [policy, setPolicy] = useState(false);
 
@@ -81,6 +82,17 @@ const ProfileSheet = ({ open, onOpenChange }: Props) => {
           </div>
 
           <div className="space-y-1">
+            <button
+              onClick={() =>
+                authApi
+                  .newCode()
+                  .then(setRecovery)
+                  .catch((e: Error) => toast.error(e.message))
+              }
+              className="w-full flex items-center justify-between py-3 text-left text-muted-foreground hover:text-foreground"
+            >
+              Новый код восстановления пароля <Icon name="KeyRound" size={18} />
+            </button>
             <button onClick={() => setPolicy(true)} className="w-full flex items-center justify-between py-3 text-left text-muted-foreground hover:text-foreground">
               Условия и данные <Icon name="ChevronRight" size={18} />
             </button>

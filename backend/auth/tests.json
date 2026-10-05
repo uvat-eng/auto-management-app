@@ -1,6 +1,51 @@
-{"tests": [
-  {"name": "CORS", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
-  {"name": "Без сессии", "method": "GET", "path": "/", "expectedStatus": 401},
-  {"name": "Короткий пароль", "method": "POST", "path": "/", "body": {"action": "register", "login": "tester", "password": "1", "consent": true}, "expectedStatus": 400},
-  {"name": "Неверный вход", "method": "POST", "path": "/", "body": {"action": "login", "login": "nobody_here_x", "password": "wrongpass"}, "expectedStatus": 401}
-]}
+{
+ "tests": [
+  {
+   "name": "CORS",
+   "method": "OPTIONS",
+   "path": "/",
+   "expectedStatus": 200
+  },
+  {
+   "name": "Без сессии",
+   "method": "GET",
+   "path": "/",
+   "expectedStatus": 401
+  },
+  {
+   "name": "Короткий пароль",
+   "method": "POST",
+   "path": "/",
+   "body": {
+    "action": "register",
+    "login": "tester",
+    "password": "1",
+    "consent": true
+   },
+   "expectedStatus": 400
+  },
+  {
+   "name": "Неверный вход",
+   "method": "POST",
+   "path": "/",
+   "body": {
+    "action": "login",
+    "login": "nobody_here_x",
+    "password": "wrongpass"
+   },
+   "expectedStatus": 401
+  },
+  {
+   "name": "Сброс с неверным кодом",
+   "method": "POST",
+   "path": "/",
+   "body": {
+    "action": "reset",
+    "login": "nobody_here_x",
+    "code": "AAAA-BBBB-CCCC",
+    "password": "newpass1"
+   },
+   "expectedStatus": 401
+  }
+ ]
+}

@@ -6,7 +6,10 @@ interface AuthCtx {
   checking: boolean;
   login: (login: string, password: string) => Promise<void>;
   register: (login: string, password: string) => Promise<void>;
+  reset: (login: string, code: string, password: string) => Promise<void>;
   logout: () => void;
+  recovery: string | null;
+  setRecovery: (code: string | null) => void;
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
@@ -20,6 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return null;
     }
   });
+  const [recovery, setRecovery] = useState<string | null>(null);
   const [checking, setChecking] = useState(Boolean(getToken()) && !user);
 
   const remember = (u: User | null, token?: string) => {
@@ -45,6 +49,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const register = useCallback(async (l: string, p: string) => {
     const r = await authApi.register(l, p);
+    setRecovery(r.recovery);
+    remember(r.user, r.token);
+  }, []);
+
+  const reset = useCallback(async (l: string, c: string, p: string) => {
+    const r = await authApi.reset(l, c, p);
+    setRecovery(r.recovery);
     remember(r.user, r.token);
   }, []);
 
@@ -53,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     remember(null, "");
   }, []);
 
-  return <Ctx.Provider value={{ user, checking, login, register, logout }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ user, checking, login, register, reset, logout, recovery, setRecovery }}>{children}</Ctx.Provider>;
 };
 
 export const useAuth = () => {

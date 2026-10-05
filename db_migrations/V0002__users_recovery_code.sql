@@ -1,0 +1,1 @@
+ALTER TABLE t_p51402717_auto_management_app.users ADD COLUMN recovery_hash VARCHAR(255);

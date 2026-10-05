@@ -30,7 +30,10 @@ export const authApi = {
   me: () => call<{ user: User }>(AUTH_URL, "GET").then((r) => r.user),
   login: (login: string, password: string) => call<{ token: string; user: User }>(AUTH_URL, "POST", { action: "login", login, password }),
   register: (login: string, password: string) =>
-    call<{ token: string; user: User }>(AUTH_URL, "POST", { action: "register", login, password, consent: true }),
+    call<{ token: string; user: User; recovery: string }>(AUTH_URL, "POST", { action: "register", login, password, consent: true }),
+  reset: (login: string, code: string, password: string) =>
+    call<{ token: string; user: User; recovery: string }>(AUTH_URL, "POST", { action: "reset", login, code, password }),
+  newCode: () => call<{ recovery: string }>(AUTH_URL, "POST", { action: "new_code" }).then((r) => r.recovery),
   logout: () => call(AUTH_URL, "POST", { action: "logout" }).catch(() => undefined),
 };
 
