@@ -64,6 +64,8 @@ interface FleetCtx {
   removeCar: (id: string) => void;
   archiveCar: (id: string, value: boolean) => void;
   logMileage: (id: string, km: number) => void;
+  all: Car[];
+  importCars: (list: Car[]) => { added: number; updated: number };
   stylize: (car: Car, source?: string) => void;
 }
 
@@ -224,11 +226,23 @@ export const FleetProvider = ({ children }: { children: ReactNode }) => {
     [updateCar],
   );
 
+  const importCars = useCallback((list: Car[]) => {
+    const ids = new Set(latest.current.map((c) => c.id));
+    const updated = list.filter((c) => ids.has(c.id)).length;
+    list.forEach((c) => mark(c.id));
+    setAll((prev) => {
+      const map = new Map(prev.map((c) => [c.id, c]));
+      list.forEach((c) => map.set(c.id, { ...c, heroStatus: undefined }));
+      return [...map.values()];
+    });
+    return { added: list.length - updated, updated };
+  }, []);
+
   const cars = useMemo(() => all.filter((c) => !c.archived), [all]);
   const archived = useMemo(() => all.filter((c) => c.archived), [all]);
 
   return (
-    <Ctx.Provider value={{ cars, archived, ready, sync, addCar, updateCar, removeCar, archiveCar, logMileage, stylize }}>
+    <Ctx.Provider value={{ cars, archived, all, importCars, ready, sync, addCar, updateCar, removeCar, archiveCar, logMileage, stylize }}>
       {children}
     </Ctx.Provider>
   );

@@ -236,15 +236,15 @@
   to { opacity: 0.9; letter-spacing: 0.4em; }
 }
 .splash-wolf-left {
-  animation: splash-left 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: splash-left 2.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .splash-wolf-right {
-  animation: splash-right 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: splash-right 2.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .splash-glow {
   background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.35), transparent 22%);
-  animation: splash-glow 1s ease-out 1.5s both;
+  animation: splash-glow 1.2s ease-out 2.3s both;
 }
 .splash-title {
-  animation: splash-title 1.2s ease-out 1.7s both;
+  animation: splash-title 1.4s ease-out 2.6s both;
 }

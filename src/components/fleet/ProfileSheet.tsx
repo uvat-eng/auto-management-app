@@ -3,6 +3,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import Icon from "@/components/ui/icon";
 import BackButton from "./BackButton";
 import PolicyDialog from "./PolicyDialog";
+import BackupDialog from "./BackupDialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useFleet } from "@/hooks/use-fleet";
 import { formatKm } from "@/lib/fleet";
@@ -18,6 +19,7 @@ const ProfileSheet = ({ open, onOpenChange }: Props) => {
   const { user, logout, setRecovery } = useAuth();
   const { cars, archived, sync, archiveCar } = useFleet();
   const [policy, setPolicy] = useState(false);
+  const [backup, setBackup] = useState(false);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -44,6 +46,20 @@ const ProfileSheet = ({ open, onOpenChange }: Props) => {
               <p className="font-head text-2xl mt-1">{archived.length}</p>
             </div>
           </div>
+
+          <button
+            onClick={() => setBackup(true)}
+            className="w-full flex items-center gap-3 rounded-2xl border border-border bg-background p-4 text-left hover:border-muted-foreground/40 transition-colors"
+          >
+            <span className="w-11 h-11 rounded-xl bg-primary text-primary-foreground grid place-items-center shrink-0">
+              <Icon name="HardDriveDownload" size={20} />
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium">Резервная копия</p>
+              <p className="text-xs text-muted-foreground">Сохранить в файл, отправить или загрузить на новом телефоне</p>
+            </div>
+            <Icon name="ChevronRight" size={18} className="text-muted-foreground" />
+          </button>
 
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Архив</p>
@@ -108,6 +124,7 @@ const ProfileSheet = ({ open, onOpenChange }: Props) => {
           </div>
         </div>
         <PolicyDialog open={policy} onOpenChange={setPolicy} />
+        <BackupDialog open={backup} onOpenChange={setBackup} />
       </SheetContent>
     </Sheet>
   );

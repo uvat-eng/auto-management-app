@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 const SEEN_KEY = "avtopark-splash";
-const DURATION = 3600;
+const DURATION = 5000;
 
 const Splash = () => {
   const [show, setShow] = useState(() => !sessionStorage.getItem(SEEN_KEY));
@@ -11,7 +11,7 @@ const Splash = () => {
   useEffect(() => {
     if (!show) return;
     sessionStorage.setItem(SEEN_KEY, "1");
-    const a = new Audio("/intro.mp3");
+    const a = new Audio("/intro-v2.mp3");
     a.volume = 0.8;
     audio.current = a;
     let played = false;
@@ -55,9 +55,9 @@ const Splash = () => {
         setTimeout(() => setShow(false), 400);
       }}
     >
-      <div className="relative flex items-center justify-center w-[min(86vw,460px)] aspect-[1476/852]">
-        <img src="/wolf-left.png" alt="" className="splash-wolf-left h-full w-1/2 object-contain object-right" />
-        <img src="/wolf-right.png" alt="" className="splash-wolf-right h-full w-1/2 object-contain object-left" />
+      <div className="relative flex items-center justify-center w-[min(86vw,460px)] aspect-[1968/1134]">
+        <img src="/wolves-l.png" alt="" className="splash-wolf-left h-full w-1/2 object-contain object-right" />
+        <img src="/wolves-r.png" alt="" className="splash-wolf-right h-full w-1/2 object-contain object-left" />
         <span className="splash-glow absolute inset-0 pointer-events-none" />
       </div>
       <p className="splash-title mt-8 font-head text-white text-xl tracking-[0.4em] uppercase">Твой автопарк</p>

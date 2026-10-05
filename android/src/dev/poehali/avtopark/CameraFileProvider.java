@@ -53,7 +53,8 @@ public class CameraFileProvider extends ContentProvider {
 
     @Override
     public String getType(Uri uri) {
-        return "image/jpeg";
+        String n = uri.getLastPathSegment();
+        return n != null && n.endsWith(".jpg") ? "image/jpeg" : "application/octet-stream";
     }
 
     @Override

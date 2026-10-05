@@ -12,7 +12,11 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
 import android.view.WindowManager;
+import android.content.ContentValues;
+import android.os.Environment;
+import android.util.Base64;
 import android.webkit.GeolocationPermissions;
+import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -25,6 +29,8 @@ import android.webkit.WebViewClient;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
@@ -63,6 +69,8 @@ public class MainActivity extends Activity {
         s.setUseWideViewPort(true);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
         s.setUserAgentString(s.getUserAgentString() + " AvtoparkApp/1.0");
+
+        web.addJavascriptInterface(new NativeBridge(), "AvtoparkNative");
 
         web.setWebViewClient(new WebViewClient() {
             @Override
@@ -135,6 +143,60 @@ public class MainActivity extends Activity {
         }
     }
 
+    private class NativeBridge {
+        @JavascriptInterface
+        public void shareFile(String name, String base64) {
+            try {
+                File dir = new File(getCacheDir(), "camera");
+                dir.mkdirs();
+                File f = new File(dir, safe(name));
+                try (FileOutputStream out = new FileOutputStream(f)) {
+                    out.write(Base64.decode(base64, Base64.DEFAULT));
+                }
+                Intent send = new Intent(Intent.ACTION_SEND);
+                send.setType("application/octet-stream");
+                send.putExtra(Intent.EXTRA_STREAM, CameraFileProvider.uriFor(f));
+                send.putExtra(Intent.EXTRA_SUBJECT, "Резервная копия «Автопарк»");
+                send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                runOnUiThread(() -> startActivity(Intent.createChooser(send, "Отправить копию")));
+            } catch (Exception ignored) {
+            }
+        }
+
+        @JavascriptInterface
+        public String saveFile(String name, String base64) {
+            try {
+                byte[] data = Base64.decode(base64, Base64.DEFAULT);
+                String fname = safe(name);
+                if (Build.VERSION.SDK_INT >= 29) {
+                    ContentValues v = new ContentValues();
+                    v.put(MediaStore.Downloads.DISPLAY_NAME, fname);
+                    v.put(MediaStore.Downloads.MIME_TYPE, "application/octet-stream");
+                    v.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+                    Uri uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
+                    if (uri == null) return "Не удалось создать файл";
+                    try (OutputStream out = getContentResolver().openOutputStream(uri)) {
+                        out.write(data);
+                    }
+                } else {
+                    File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    dir.mkdirs();
+                    try (FileOutputStream out = new FileOutputStream(new File(dir, fname))) {
+                        out.write(data);
+                    }
+                }
+                return "ok";
+            } catch (Exception e) {
+                return "Не удалось сохранить файл";
+            }
+        }
+    }
+
+    private static String safe(String name) {
+        String n = name == null ? "avtopark.avtopark" : name.replaceAll("[^A-Za-z0-9._-]", "_");
+        return n.isEmpty() ? "avtopark.avtopark" : n;
+    }
+
     private InputStream open(String path) {
         try {
             return getAssets().open("www" + path);
@@ -170,7 +232,11 @@ public class MainActivity extends Activity {
 
     private void openPicker(WebChromeClient.FileChooserParams params) {
         ArrayList<Intent> extra = new ArrayList<>();
-        if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+        boolean wantsImage = params == null || params.getAcceptTypes() == null || params.getAcceptTypes().length == 0
+                || (params.getAcceptTypes()[0] != null && params.getAcceptTypes()[0].startsWith("image/"));
+        if (!wantsImage) {
+            // документ — камера не нужна
+        } else if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             try {
                 File dir = new File(getCacheDir(), "camera");
                 dir.mkdirs();
@@ -187,13 +253,19 @@ public class MainActivity extends Activity {
             requestPermissions(new String[]{Manifest.permission.CAMERA}, REQ_PERMS);
         }
 
+        boolean imagesOnly = false;
+        if (params != null && params.getAcceptTypes() != null) {
+            for (String t : params.getAcceptTypes()) if (t != null && t.startsWith("image/")) imagesOnly = true;
+            for (String t : params.getAcceptTypes()) if (t != null && (t.contains("*/*") || t.startsWith("."))) imagesOnly = false;
+        }
+        if (!imagesOnly) extra.clear();
         Intent pick = new Intent(Intent.ACTION_GET_CONTENT);
         pick.addCategory(Intent.CATEGORY_OPENABLE);
-        pick.setType("image/*");
+        pick.setType(imagesOnly ? "image/*" : "*/*");
         if (params != null && params.getMode() == WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE) {
             pick.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         }
-        Intent chooser = Intent.createChooser(pick, "Фото");
+        Intent chooser = Intent.createChooser(pick, imagesOnly ? "Фото" : "Выберите файл");
         chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, extra.toArray(new Intent[0]));
         try {
             startActivityForResult(chooser, REQ_FILE);
