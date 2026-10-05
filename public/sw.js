@@ -1,7 +1,7 @@
-const CACHE = "avtopark-shell-v2";
+const CACHE = "avtopark-shell-v3";
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(["/", "/manifest.webmanifest", "/icon-192.png", "/wolf-left.png", "/wolf-right.png", "/intro.mp3"])));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(["/", "/manifest.webmanifest", "/icon-192.png", "/wolf-left.png", "/wolf-right.png", "/icon-512.png", "/intro.mp3"])));
   self.skipWaiting();
 });
 

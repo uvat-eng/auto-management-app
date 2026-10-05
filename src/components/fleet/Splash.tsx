@@ -55,7 +55,7 @@ const Splash = () => {
         setTimeout(() => setShow(false), 400);
       }}
     >
-      <div className="relative flex items-center justify-center w-[min(86vw,460px)] aspect-[788/518]">
+      <div className="relative flex items-center justify-center w-[min(86vw,460px)] aspect-[1476/852]">
         <img src="/wolf-left.png" alt="" className="splash-wolf-left h-full w-1/2 object-contain object-right" />
         <img src="/wolf-right.png" alt="" className="splash-wolf-right h-full w-1/2 object-contain object-left" />
         <span className="splash-glow absolute inset-0 pointer-events-none" />
