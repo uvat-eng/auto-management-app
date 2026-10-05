@@ -6,10 +6,17 @@ import { Input } from "@/components/ui/input";
 import OfflineMapsDialog from "./OfflineMapsDialog";
 import { LAYERS, Place, Route, buildRoute, distance, formatDist, formatDur, makeLayer, searchPlaces } from "@/lib/maps";
 import { toast } from "sonner";
+import { isMuted, lowerFirst, say, setMuted, spokenDistance, voiceSupported } from "@/lib/voice";
 
 const LAYER_KEY = "avtopark-map-layer";
 
 const dot = (cls: string) => L.divIcon({ className: "", html: `<span class="${cls}"></span>`, iconSize: [22, 22], iconAnchor: [11, 11] });
+
+const formatDurSpoken = (s: number) => {
+  const h = Math.floor(s / 3600);
+  const m = Math.round((s % 3600) / 60);
+  return `В пути ${h ? `${h} ч ` : ""}${m} мин`;
+};
 
 const NavigatorScreen = () => {
   const box = useRef<HTMLDivElement>(null);
@@ -35,6 +42,8 @@ const NavigatorScreen = () => {
   const [stepIdx, setStepIdx] = useState(0);
   const [layersOpen, setLayersOpen] = useState(false);
   const [offline, setOffline] = useState(false);
+  const [muted, setMutedState] = useState(isMuted);
+  const spoken = useRef<Record<string, boolean>>({});
 
   const layer = LAYERS.find((l) => l.id === layerId) ?? LAYERS[0];
 
@@ -115,9 +124,27 @@ const NavigatorScreen = () => {
     let i = stepIdx;
     while (i < route.steps.length - 1 && distance(pos, [route.steps[i].lat, route.steps[i].lon]) < 30) i++;
     if (i !== stepIdx) setStepIdx(i);
+    const next = route.steps[Math.min(i + 1, route.steps.length - 1)];
+    const d = distance(pos, [next.lat, next.lon]);
+    const k = String(i + 1);
+    const phrase = lowerFirst(next.text);
+    if (d < 60 && !spoken.current[`${k}-now`]) {
+      spoken.current[`${k}-now`] = true;
+      spoken.current[`${k}-soon`] = true;
+      spoken.current[`${k}-far`] = true;
+      say(next.text);
+    } else if (d < 250 && d >= 60 && !spoken.current[`${k}-soon`]) {
+      spoken.current[`${k}-soon`] = true;
+      spoken.current[`${k}-far`] = true;
+      say(`Через ${spokenDistance(d)} ${phrase}`);
+    } else if (d >= 800 && d < 1300 && !spoken.current[`${k}-far`]) {
+      spoken.current[`${k}-far`] = true;
+      say(`Через ${spokenDistance(d)} ${phrase}`);
+    }
     const end = route.line[route.line.length - 1];
     if (distance(pos, end) < 40) {
       toast.success("Вы на месте");
+      say("Вы прибыли на место");
       setDriving(false);
     }
   }, [pos, driving, route, stepIdx]);
@@ -158,6 +185,11 @@ const NavigatorScreen = () => {
   };
 
   const startDrive = () => {
+    spoken.current = {};
+    if (route) {
+      const first = route.steps[1] ?? route.steps[0];
+      say(`Маршрут построен. ${formatDurSpoken(route.duration)}. ${first ? `Через ${spokenDistance(route.steps[0].distance)} ${lowerFirst(first.text)}` : ""}`);
+    }
     setDriving(true);
     setFollow(true);
     if (pos) map.current?.setView(pos, 17);
@@ -218,6 +250,19 @@ const NavigatorScreen = () => {
       )}
 
       <div className="absolute right-3 bottom-36 z-[500] flex flex-col gap-2">
+        {voiceSupported() && (
+          <button
+            onClick={() => {
+              setMuted(!muted);
+              setMutedState(!muted);
+              if (muted) say("Голосовые подсказки включены", true);
+            }}
+            aria-label={muted ? "Включить голос" : "Выключить голос"}
+            className={`nav-fab ${muted ? "text-muted-foreground" : "text-gold"}`}
+          >
+            <Icon name={muted ? "VolumeX" : "Volume2"} size={20} />
+          </button>
+        )}
         <button onClick={() => setLayersOpen((v) => !v)} aria-label="Слои карты" className="nav-fab">
           <Icon name="Layers" size={20} />
         </button>
@@ -270,7 +315,13 @@ const NavigatorScreen = () => {
                 <p className="text-sm text-muted-foreground mt-1">{formatDist(route.distance)}</p>
               </div>
               {driving ? (
-                <button onClick={() => setDriving(false)} className="h-12 px-5 rounded-full bg-secondary font-medium">
+                <button
+                  onClick={() => {
+                    setDriving(false);
+                    window.speechSynthesis?.cancel();
+                  }}
+                  className="h-12 px-5 rounded-full bg-secondary font-medium"
+                >
                   Стоп
                 </button>
               ) : (
