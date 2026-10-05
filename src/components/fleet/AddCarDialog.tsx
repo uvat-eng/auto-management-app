@@ -14,7 +14,7 @@ interface Props {
 }
 
 const AddCarDialog = ({ open, onOpenChange, onAdded }: Props) => {
-  const { cars, addCar } = useFleet();
+  const { cars, addCar, stylize } = useFleet();
   const fileRef = useRef<HTMLInputElement>(null);
   const [make, setMake] = useState("");
   const [plate, setPlate] = useState("");
@@ -55,6 +55,7 @@ const AddCarDialog = ({ open, onOpenChange, onAdded }: Props) => {
       nextServiceKm: km + 10000,
     };
     addCar(car);
+    if (photo) stylize(car, photo);
     toast.success(`${car.make} в автопарке`);
     onOpenChange(false);
     onAdded(cars.length);

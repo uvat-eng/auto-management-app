@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import Icon from "@/components/ui/icon";
 import PhotoSlot from "./PhotoSlot";
+import StudioCover from "./StudioCover";
 import BackButton from "./BackButton";
 import PhotoViewer from "./PhotoViewer";
 import { Car, MAX_PHOTOS, Policy, compressImage, daysUntil, formatDate, formatKm, formatTerm } from "@/lib/fleet";
@@ -109,7 +110,7 @@ const PolicyCard = ({ title, policy, onSave }: { title: string; policy?: Policy;
 };
 
 const CarSheet = ({ car, open, tab, onTabChange, onOpenChange }: Props) => {
-  const { updateCar, removeCar } = useFleet();
+  const { updateCar, removeCar, stylize } = useFleet();
   const fileRef = useRef<HTMLInputElement>(null);
   const [view, setView] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -126,6 +127,7 @@ const CarSheet = ({ car, open, tab, onTabChange, onOpenChange }: Props) => {
     try {
       const data = await Promise.all(list.map((f) => compressImage(f)));
       updateCar(car.id, (c) => ({ photos: [...c.photos, ...data].slice(0, MAX_PHOTOS) }));
+      if (!car.hero && !car.photos.length && data[0]) stylize(car, data[0]);
     } catch {
       toast.error("Не удалось загрузить фото");
     } finally {
@@ -163,6 +165,7 @@ const CarSheet = ({ car, open, tab, onTabChange, onOpenChange }: Props) => {
 
           <div className="flex-1 overflow-y-auto px-6 pb-10 pt-4">
             <TabsContent value="photos" className="mt-0">
+              <StudioCover car={car} onRedo={() => stylize(car)} onView={setView} />
               <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => addPhotos(e.target.files)} />
               <div className="flex items-center justify-between mb-3">
                 <p className="text-sm text-muted-foreground">
@@ -187,6 +190,14 @@ const CarSheet = ({ car, open, tab, onTabChange, onOpenChange }: Props) => {
                     </button>
                     {i === 0 && <span className="absolute left-1.5 top-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">обложка</span>}
                     <div className="absolute right-1.5 top-1.5 flex gap-1">
+                      <button
+                        onClick={() => stylize(car, p)}
+                        disabled={car.heroStatus === "pending"}
+                        aria-label="Сделать студийную обложку"
+                        className="w-6 h-6 rounded-full bg-background/80 grid place-items-center hover:text-primary"
+                      >
+                        <Icon name="Sparkles" size={12} />
+                      </button>
                       {i > 0 && (
                         <button onClick={() => makeCover(i)} aria-label="Сделать обложкой" className="w-6 h-6 rounded-full bg-background/80 grid place-items-center">
                           <Icon name="Star" size={12} />

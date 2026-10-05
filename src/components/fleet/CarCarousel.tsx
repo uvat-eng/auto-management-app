@@ -56,7 +56,14 @@ const CarCarousel = ({ cars, index, onIndexChange, onOpenCar, onAddCar }: Props)
                     <img src={c.photos[0]} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl brightness-[0.35]" draggable={false} />
                     <img src={c.photos[0]} alt={c.make} className="absolute inset-0 w-full h-full object-contain pb-14" draggable={false} />
                   </>
-                ) : (
+                ) : null}
+                {c.heroStatus === "pending" && (
+                  <span className="absolute left-1/2 top-1/3 -translate-x-1/2 z-[3] inline-flex items-center gap-2 px-4 h-9 rounded-full bg-black/70 backdrop-blur text-sm text-gold whitespace-nowrap">
+                    <Icon name="Sparkles" size={16} className="animate-pulse" />
+                    Готовим студийное фото…
+                  </span>
+                )}
+                {!c.hero && !c.photos[0] && (
                   <div className="w-full h-full grid place-items-center bg-muted text-muted-foreground">
                     <Icon name="Car" size={72} strokeWidth={1} />
                   </div>

@@ -34,6 +34,9 @@ export interface Car {
   vin?: string;
   photos: string[];
   hero?: string;
+  heroSource?: string;
+  heroStatus?: "pending" | "error";
+  heroAttempt?: number;
   sts?: string;
   pts?: string;
   mileage: number;

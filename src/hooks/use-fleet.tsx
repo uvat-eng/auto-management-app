@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { Car, SEED_HERO, seedCars, today } from "@/lib/fleet";
+import { makeStudioPhoto } from "@/lib/studio";
+import { toast } from "sonner";
 
 const DB_NAME = "tvoy-avtopark";
 const STORE = "kv";
@@ -39,6 +41,7 @@ interface FleetCtx {
   updateCar: (id: string, patch: Partial<Car> | ((c: Car) => Partial<Car>)) => void;
   removeCar: (id: string) => void;
   logMileage: (id: string, km: number) => void;
+  stylize: (car: Car, source?: string) => void;
 }
 
 const Ctx = createContext<FleetCtx | null>(null);
@@ -50,7 +53,16 @@ export const FleetProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     readCars()
-      .then((stored) => setCars(stored ? stored.map((c) => (c.hero || !SEED_HERO[c.id] ? c : { ...c, hero: SEED_HERO[c.id] })) : seedCars()))
+      .then((stored) =>
+        setCars(
+          stored
+            ? stored.map((c) => {
+                const next = c.heroStatus === "pending" ? { ...c, heroStatus: "error" as const } : c;
+                return next.hero || !SEED_HERO[c.id] ? next : { ...next, hero: SEED_HERO[c.id] };
+              })
+            : seedCars(),
+        ),
+      )
       .catch(() => setCars(seedCars()))
       .finally(() => {
         loaded.current = true;
@@ -80,8 +92,27 @@ export const FleetProvider = ({ children }: { children: ReactNode }) => {
     );
   }, []);
 
+  const stylize = useCallback(
+    (car: Car, source?: string) => {
+      const image = source ?? car.heroSource ?? car.photos[0];
+      if (!image) return toast.error("Сначала добавьте фото машины");
+      const attempt = image === car.heroSource ? (car.heroAttempt ?? 0) + 1 : 0;
+      updateCar(car.id, { heroStatus: "pending", heroSource: image, heroAttempt: attempt });
+      makeStudioPhoto(image, attempt)
+        .then((url) => {
+          updateCar(car.id, { hero: url, heroStatus: undefined });
+          toast.success(`${car.make} — студийное фото готово`);
+        })
+        .catch((e: Error) => {
+          updateCar(car.id, { heroStatus: "error" });
+          toast.error(e.message);
+        });
+    },
+    [updateCar],
+  );
+
   return (
-    <Ctx.Provider value={{ cars, ready, addCar, updateCar, removeCar, logMileage }}>{children}</Ctx.Provider>
+    <Ctx.Provider value={{ cars, ready, addCar, updateCar, removeCar, logMileage, stylize }}>{children}</Ctx.Provider>
   );
 };
 
