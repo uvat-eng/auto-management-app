@@ -1,4 +1,4 @@
-export const APP_VERSION = { code: 8, name: "1.7" };
+export const APP_VERSION = { code: 9, name: "1.8" };
 
 interface Remote {
   versionCode: number;
