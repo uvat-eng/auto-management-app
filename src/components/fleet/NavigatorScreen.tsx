@@ -2,35 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Icon from "@/components/ui/icon";
-import { Input } from "@/components/ui/input";
 import OfflineMapsDialog from "./OfflineMapsDialog";
-import { LAYERS, Place, Route, buildRoute, distance, formatDist, formatDur, makeLayer, searchPlaces } from "@/lib/maps";
+import { LAYERS, Place, Route, buildRoute, distance, makeLayer, searchPlaces } from "@/lib/maps";
 import { toast } from "sonner";
-import { isMuted, lowerFirst, say, setMuted, spokenDistance, voiceSupported } from "@/lib/voice";
+import { isMuted, lowerFirst, say, spokenDistance } from "@/lib/voice";
 import { keepAwake } from "@/lib/wakelock";
 import { navFull } from "@/lib/navstate";
-
-const LAYER_KEY = "avtopark-map-layer";
-const MODE_KEY = "avtopark-map-mode";
-type Mode = "north" | "course";
-
-const meIcon = () =>
-  L.divIcon({ className: "", html: `<div class="nav-me-wrap"><span class="nav-me-cone"></span><span class="nav-me"></span></div>`, iconSize: [44, 44], iconAnchor: [22, 22] });
-
-const bearing = (a: [number, number], b: [number, number]) => {
-  const r = Math.PI / 180;
-  const y = Math.sin((b[1] - a[1]) * r) * Math.cos(b[0] * r);
-  const x = Math.cos(a[0] * r) * Math.sin(b[0] * r) - Math.sin(a[0] * r) * Math.cos(b[0] * r) * Math.cos((b[1] - a[1]) * r);
-  return ((Math.atan2(y, x) / r) + 360) % 360;
-};
-
-const dot = (cls: string) => L.divIcon({ className: "", html: `<span class="${cls}"></span>`, iconSize: [22, 22], iconAnchor: [11, 11] });
-
-const formatDurSpoken = (s: number) => {
-  const h = Math.floor(s / 3600);
-  const m = Math.round((s % 3600) / 60);
-  return `В пути ${h ? `${h} ч ` : ""}${m} мин`;
-};
+import { LAYER_KEY, MODE_KEY, Mode, bearing, dot, formatDurSpoken, meIcon } from "./navigator/navUtils";
+import NavTopBar from "./navigator/NavTopBar";
+import NavControls from "./navigator/NavControls";
+import NavRoutePanel from "./navigator/NavRoutePanel";
 
 interface Props {
   hidden?: boolean;
@@ -353,6 +334,7 @@ const NavigatorScreen = ({ hidden }: Props) => {
   const step = route?.steps[driving ? Math.min(stepIdx + 1, route.steps.length - 1) : 0];
   const stepDist = step && pos ? distance(pos, [step.lat, step.lon]) : step?.distance ?? 0;
 
+
   return (
     <section
       ref={shell}
@@ -377,122 +359,47 @@ const NavigatorScreen = ({ hidden }: Props) => {
       />
       </div>
 
-      {driving && step ? (
-        <div className="absolute left-3 right-3 nav-top z-[500] rounded-3xl bg-card/95 backdrop-blur border border-border p-4 flex items-center gap-4 animate-fade-in">
-          <span className="w-12 h-12 rounded-2xl bg-primary text-primary-foreground grid place-items-center shrink-0">
-            <Icon name="Navigation" size={22} />
-          </span>
-          <div className="min-w-0">
-            <p className="font-head text-2xl font-semibold text-gold leading-none">{formatDist(stepDist)}</p>
-            <p className="text-sm mt-1 truncate">{step.text}</p>
-          </div>
-        </div>
-      ) : (
-        <div className="absolute left-3 right-3 nav-top z-[500] space-y-2">
-          <form onSubmit={doSearch} className="flex gap-2">
+      <NavTopBar
+        driving={driving}
+        step={step}
+        stepDist={stepDist}
+        query={query}
+        setQuery={setQuery}
+        searching={searching}
+        results={results}
+        doSearch={doSearch}
+        onPick={(r) => {
+          setTarget(r);
+          setResults([]);
+          setRoute(null);
+          if (pos) makeRoute(r);
+          else map.current?.setView([r.lat, r.lon], 13);
+        }}
+      />
 
-            <div className="relative flex-1">
-              <Icon name="Search" size={16} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-muted-foreground pointer-events-none" />
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Куда едем?"
-                enterKeyHint="search"
-                className="h-12 pl-10 rounded-full bg-card/95 backdrop-blur border-border"
-              />
-            </div>
-            <button type="submit" disabled={searching} className="h-12 w-12 rounded-full bg-primary text-primary-foreground grid place-items-center shrink-0">
-              <Icon name={searching ? "Loader" : "ArrowRight"} size={18} className={searching ? "animate-spin" : ""} />
-            </button>
-          </form>
-          {results.length > 0 && (
-            <div className="rounded-3xl bg-card/95 backdrop-blur border border-border overflow-hidden max-h-[40dvh] overflow-y-auto">
-              {results.map((r, i) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    setTarget(r);
-                    setResults([]);
-                    setRoute(null);
-                    if (pos) makeRoute(r);
-                    else map.current?.setView([r.lat, r.lon], 13);
-                  }}
-                  className="w-full text-left px-4 py-3 text-sm border-b border-border last:border-0 hover:bg-secondary"
-                >
-                  <span className="line-clamp-2">{r.name}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className={`absolute right-3 z-[500] flex flex-col gap-2 ${target ? "bottom-36" : "nav-bottom"}`}>
-        <button onClick={switchMode} aria-label={mode === "north" ? "Карта по курсу" : "Север сверху"} className="nav-fab relative">
-          {mode === "north" ? (
-            <span className="flex flex-col items-center leading-none">
-              <Icon name="Navigation2" size={16} className="text-destructive" />
-              <span className="text-[11px] font-semibold mt-0.5">С</span>
-            </span>
-          ) : (
-            <span className="flex flex-col items-center leading-none" style={{ transform: `rotate(${turn}deg)` }}>
-              <Icon name="Navigation2" size={16} className="text-destructive" />
-              <span className="text-[11px] font-semibold mt-0.5">С</span>
-            </span>
-          )}
-        </button>
-        <button onClick={full ? closeFull : openFull} aria-label={full ? "Свернуть" : "На весь экран"} className="nav-fab">
-          <Icon name={full ? "Minimize2" : "Maximize2"} size={20} />
-        </button>
-        {voiceSupported() && (
-          <button
-            onClick={() => {
-              setMuted(!muted);
-              setMutedState(!muted);
-              if (muted) say("Голосовые подсказки включены", true);
-            }}
-            aria-label={muted ? "Включить голос" : "Выключить голос"}
-            className={`nav-fab ${muted ? "text-muted-foreground" : "!text-primary"}`}
-          >
-            <Icon name={muted ? "VolumeX" : "Volume2"} size={20} />
-          </button>
-        )}
-        <button onClick={() => setLayersOpen((v) => !v)} aria-label="Слои карты" className="nav-fab">
-          <Icon name="Layers" size={20} />
-        </button>
-        <button onClick={() => setOffline(true)} aria-label="Карты без интернета" className="nav-fab">
-          <Icon name="Download" size={20} />
-        </button>
-        <button
-          onClick={() => {
-            setFollow(true);
-            if (pos) map.current?.setView(pos, Math.max(map.current.getZoom(), 14));
-            else toast.message("Ищем вас… Разрешите доступ к геопозиции");
-          }}
-          aria-label="Где я"
-          className={`nav-fab ${follow && pos ? "!text-primary" : ""}`}
-        >
-          <Icon name="LocateFixed" size={20} />
-        </button>
-      </div>
-
-      {layersOpen && (
-        <div className="absolute right-16 nav-bottom z-[500] w-64 rounded-3xl bg-card/95 backdrop-blur border border-border p-2 animate-fade-in">
-          {LAYERS.map((l) => (
-            <button
-              key={l.id}
-              onClick={() => {
-                setLayerId(l.id);
-                setLayersOpen(false);
-              }}
-              className={`w-full text-left rounded-2xl px-3 py-2.5 ${l.id === layerId ? "bg-secondary" : "hover:bg-secondary/60"}`}
-            >
-              <p className={`text-sm font-medium ${l.id === layerId ? "text-gold" : ""}`}>{l.label}</p>
-              <p className="text-xs text-muted-foreground">{l.hint}</p>
-            </button>
-          ))}
-        </div>
-      )}
+      <NavControls
+        target={!!target}
+        mode={mode}
+        turn={turn}
+        full={full}
+        muted={muted}
+        setMutedState={setMutedState}
+        follow={follow}
+        hasPos={!!pos}
+        layersOpen={layersOpen}
+        setLayersOpen={setLayersOpen}
+        layerId={layerId}
+        setLayerId={setLayerId}
+        switchMode={switchMode}
+        openFull={openFull}
+        closeFull={closeFull}
+        openOffline={() => setOffline(true)}
+        onLocate={() => {
+          setFollow(true);
+          if (pos) map.current?.setView(pos, Math.max(map.current.getZoom(), 14));
+          else toast.message("Ищем вас… Разрешите доступ к геопозиции");
+        }}
+      />
 
       {layer.overlay && !driving && (zoom < (layer.minZoom ?? 0) || tileErrors > 3) && (
         <div className="absolute left-1/2 -translate-x-1/2 top-[76px] z-[400] px-4 py-2 rounded-full bg-card/95 backdrop-blur border border-border text-xs text-muted-foreground whitespace-nowrap">
@@ -501,46 +408,19 @@ const NavigatorScreen = ({ hidden }: Props) => {
       )}
 
       {target && (
-        <div className="absolute left-3 right-3 nav-bottom-panel z-[500] rounded-3xl bg-card/95 backdrop-blur border border-border p-4 animate-fade-in">
-          {route ? (
-            <div className="flex items-center gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="font-head text-2xl font-semibold leading-none">{formatDur(route.duration)}</p>
-                <p className="text-sm text-muted-foreground mt-1">{formatDist(route.distance)}</p>
-              </div>
-              {driving ? (
-                <button
-                  onClick={() => {
-                    setDriving(false);
-                    window.speechSynthesis?.cancel();
-                  }}
-                  className="h-12 px-5 rounded-full bg-secondary font-medium"
-                >
-                  Стоп
-                </button>
-              ) : (
-                <button onClick={startDrive} className="h-12 px-5 rounded-full bg-primary text-primary-foreground font-medium inline-flex items-center gap-2 shrink-0">
-                  <Icon name="Navigation" size={18} /> Поехали
-                </button>
-              )}
-              <button onClick={reset} aria-label="Сбросить" className="h-12 w-12 rounded-full border border-border grid place-items-center text-muted-foreground">
-                <Icon name="X" size={18} />
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm line-clamp-2">{target.name}</p>
-              <div className="flex gap-2">
-                <button onClick={() => makeRoute()} disabled={routing} className="flex-1 h-12 rounded-full bg-primary text-primary-foreground font-medium inline-flex items-center justify-center gap-2 disabled:opacity-80">
-                  <Icon name={routing ? "Loader" : "Route"} size={18} className={routing ? "animate-spin" : ""} /> {routing ? "Строим маршрут…" : "Маршрут"}
-                </button>
-                <button onClick={reset} aria-label="Сбросить" className="h-12 w-12 rounded-full border border-border grid place-items-center text-muted-foreground">
-                  <Icon name="X" size={18} />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        <NavRoutePanel
+          target={target}
+          route={route}
+          driving={driving}
+          routing={routing}
+          onStop={() => {
+            setDriving(false);
+            window.speechSynthesis?.cancel();
+          }}
+          startDrive={startDrive}
+          makeRoute={() => makeRoute()}
+          reset={reset}
+        />
       )}
 
       {!full && !target && (
