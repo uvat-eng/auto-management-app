@@ -5,7 +5,7 @@ import BackButton from "./BackButton";
 import PolicyDialog from "./PolicyDialog";
 import BackupDialog from "./BackupDialog";
 import UpdateDialog from "./UpdateDialog";
-import { APP_VERSION } from "@/lib/updates";
+import { APP_VERSION, isIosApp } from "@/lib/updates";
 import { useAuth } from "@/hooks/use-auth";
 import { useFleet } from "@/hooks/use-fleet";
 import { formatKm } from "@/lib/fleet";
@@ -64,19 +64,21 @@ const ProfileSheet = ({ open, onOpenChange }: Props) => {
             <Icon name="ChevronRight" size={18} className="text-muted-foreground" />
           </button>
 
-          <button
-            onClick={() => setUpdates(true)}
-            className="w-full flex items-center gap-3 rounded-2xl border border-border bg-background p-4 text-left hover:border-muted-foreground/40 transition-colors"
-          >
-            <span className="w-11 h-11 rounded-xl bg-secondary text-primary grid place-items-center shrink-0">
-              <Icon name="RefreshCw" size={20} />
-            </span>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium">Проверить обновления</p>
-              <p className="text-xs text-muted-foreground">Версия {APP_VERSION.name}</p>
-            </div>
-            <Icon name="ChevronRight" size={18} className="text-muted-foreground" />
-          </button>
+          {!isIosApp() && (
+            <button
+              onClick={() => setUpdates(true)}
+              className="w-full flex items-center gap-3 rounded-2xl border border-border bg-background p-4 text-left hover:border-muted-foreground/40 transition-colors"
+            >
+              <span className="w-11 h-11 rounded-xl bg-secondary text-primary grid place-items-center shrink-0">
+                <Icon name="RefreshCw" size={20} />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium">Проверить обновления</p>
+                <p className="text-xs text-muted-foreground">Версия {APP_VERSION.name}</p>
+              </div>
+              <Icon name="ChevronRight" size={18} className="text-muted-foreground" />
+            </button>
+          )}
 
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Архив</p>

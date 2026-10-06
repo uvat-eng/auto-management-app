@@ -10,6 +10,7 @@ interface Remote {
 const SITE_KEY = "avtopark-site";
 
 interface NativeInfo {
+  platform?: string;
   versionCode?: () => number;
   siteUrl?: () => string;
   openUrl?: (url: string) => void;
@@ -17,11 +18,14 @@ interface NativeInfo {
 
 const native = () => (window as unknown as { AvtoparkNative?: NativeInfo }).AvtoparkNative;
 
-export const isAndroidApp = () => !!native();
+export const isIosApp = () => native()?.platform === "ios";
+
+export const isAndroidApp = () => !!native() && !isIosApp();
 
 export const installedVersion = () => native()?.versionCode?.() ?? APP_VERSION.code;
 
 const siteBase = () => {
+  if (isIosApp()) return native()?.siteUrl?.() || "";
   if (!isAndroidApp()) return location.origin;
   return native()?.siteUrl?.() || localStorage.getItem(SITE_KEY) || "";
 };
