@@ -36,6 +36,8 @@ export const authApi = {
     call<{ token: string; user: User; recovery: string }>(AUTH_URL, "POST", { action: "reset", login, code, password }),
   newCode: () => call<{ recovery: string }>(AUTH_URL, "POST", { action: "new_code" }).then((r) => r.recovery),
   logout: () => call(AUTH_URL, "POST", { action: "logout" }).catch(() => undefined),
+  deleteAccount: (password: string) => call(AUTH_URL, "POST", { action: "delete_account", password }),
+  support: (name: string, contact: string, message: string) => call(AUTH_URL, "POST", { action: "support", name, contact, message }),
 };
 
 export const garageApi = {

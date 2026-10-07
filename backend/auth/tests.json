@@ -36,6 +36,27 @@
    "expectedStatus": 401
   },
   {
+   "name": "Удаление без сессии",
+   "method": "POST",
+   "path": "/",
+   "body": {
+    "action": "delete_account",
+    "password": "whatever"
+   },
+   "expectedStatus": 401
+  },
+  {
+   "name": "Пустое обращение",
+   "method": "POST",
+   "path": "/",
+   "body": {
+    "action": "support",
+    "contact": "",
+    "message": ""
+   },
+   "expectedStatus": 400
+  },
+  {
    "name": "Сброс с неверным кодом",
    "method": "POST",
    "path": "/",

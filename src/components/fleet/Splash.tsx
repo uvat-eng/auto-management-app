@@ -6,7 +6,7 @@ const DURATION = 5000;
 type Phase = "check" | "tap" | "play";
 
 const Splash = () => {
-  const [show, setShow] = useState(() => !sessionStorage.getItem(SEEN_KEY));
+  const [show, setShow] = useState(() => !sessionStorage.getItem(SEEN_KEY) && !/^\/(privacy|support)/.test(window.location.pathname));
   const [phase, setPhase] = useState<Phase>("check");
   const [leaving, setLeaving] = useState(false);
   const audio = useRef<HTMLAudioElement | null>(null);

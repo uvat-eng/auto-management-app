@@ -55,7 +55,7 @@ def new_session(cur, user_id: int) -> str:
 
 
 def handler(event: dict, context) -> dict:
-    """Регистрация, вход, выход и проверка сессии пользователя по логину и паролю."""
+    """Регистрация, вход, выход, удаление аккаунта, обращения в поддержку и проверка сессии."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -94,6 +94,33 @@ def handler(event: dict, context) -> dict:
         if action == "logout":
             if token:
                 cur.execute(f"UPDATE {SCHEMA}.sessions SET expires_at = NOW() WHERE token = %s", (token,))
+            return reply(200, {"ok": True})
+
+        if action == "support":
+            contact = str(body.get("contact") or "").strip()[:200]
+            message = str(body.get("message") or "").strip()[:5000]
+            if len(contact) < 3 or len(message) < 5:
+                return reply(400, {"error": "Укажите контакт для ответа и опишите вопрос"})
+            cur.execute(
+                f"INSERT INTO {SCHEMA}.support_requests (name, contact, message) VALUES (%s, %s, %s)",
+                (str(body.get("name") or "").strip()[:120], contact, message),
+            )
+            return reply(200, {"ok": True})
+
+        if action == "delete_account":
+            cur.execute(
+                f"SELECT u.id, u.password_hash FROM {SCHEMA}.sessions s JOIN {SCHEMA}.users u ON u.id = s.user_id "
+                f"WHERE s.token = %s AND s.expires_at > NOW()",
+                (token,),
+            )
+            row = cur.fetchone()
+            if not row:
+                return reply(401, {"error": "Нужно войти"})
+            if not check_password(str(body.get("password") or ""), row[1]):
+                return reply(403, {"error": "Неверный пароль"})
+            cur.execute(f"DELETE FROM {SCHEMA}.sessions WHERE user_id = %s", (row[0],))
+            cur.execute(f"DELETE FROM {SCHEMA}.cars WHERE user_id = %s", (row[0],))
+            cur.execute(f"DELETE FROM {SCHEMA}.users WHERE id = %s", (row[0],))
             return reply(200, {"ok": True})
 
         login = str(body.get("login") or "").strip().lower()

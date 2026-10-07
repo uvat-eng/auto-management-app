@@ -11,6 +11,8 @@ import { useFleet } from "@/hooks/use-fleet";
 import { formatKm } from "@/lib/fleet";
 import { toast } from "sonner";
 import { authApi } from "@/lib/api";
+import { Link } from "react-router-dom";
+import DeleteAccountDialog from "./DeleteAccountDialog";
 
 interface Props {
   open: boolean;
@@ -23,6 +25,7 @@ const ProfileSheet = ({ open, onOpenChange }: Props) => {
   const [policy, setPolicy] = useState(false);
   const [backup, setBackup] = useState(false);
   const [updates, setUpdates] = useState(false);
+  const [remove, setRemove] = useState(false);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -131,17 +134,24 @@ const ProfileSheet = ({ open, onOpenChange }: Props) => {
             <button onClick={() => setPolicy(true)} className="w-full flex items-center justify-between py-3 text-left text-muted-foreground hover:text-foreground">
               Условия и данные <Icon name="ChevronRight" size={18} />
             </button>
+            <Link to="/support" className="w-full flex items-center justify-between py-3 text-left text-muted-foreground hover:text-foreground">
+              Поддержка <Icon name="LifeBuoy" size={18} />
+            </Link>
             <button
               onClick={() => {
                 onOpenChange(false);
                 logout();
               }}
-              className="w-full flex items-center gap-2 py-3 text-left text-muted-foreground hover:text-destructive"
+              className="w-full flex items-center gap-2 py-3 text-left text-muted-foreground hover:text-foreground"
             >
               <Icon name="LogOut" size={18} /> Выйти
             </button>
+            <button onClick={() => setRemove(true)} className="w-full flex items-center gap-2 py-3 text-left text-destructive/80 hover:text-destructive">
+              <Icon name="Trash2" size={18} /> Удалить аккаунт
+            </button>
           </div>
         </div>
+        <DeleteAccountDialog open={remove} onOpenChange={setRemove} onDeleted={() => onOpenChange(false)} />
         <PolicyDialog open={policy} onOpenChange={setPolicy} />
         <BackupDialog open={backup} onOpenChange={setBackup} />
         <UpdateDialog open={updates} onOpenChange={setUpdates} />
