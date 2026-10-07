@@ -20,7 +20,7 @@ env:
   BUNDLE_ID: su.avtopark.app
   SITE_URL: https://xn--80aaf7asgim.su
   APP_VERSION: "1.0"
-  BUILD_NUMBER: "1"
+  BUILD_NUMBER: "${{ github.run_number }}"
 
 jobs:
   build:
