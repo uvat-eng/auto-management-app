@@ -5,7 +5,7 @@ import BackButton from "./BackButton";
 import PolicyDialog from "./PolicyDialog";
 import BackupDialog from "./BackupDialog";
 import UpdateDialog from "./UpdateDialog";
-import { APP_VERSION, isIosApp } from "@/lib/updates";
+import { APP_VERSION, isAndroidApp, isIosApp } from "@/lib/updates";
 import { useAuth } from "@/hooks/use-auth";
 import { useFleet } from "@/hooks/use-fleet";
 import { formatKm } from "@/lib/fleet";
@@ -67,7 +67,7 @@ const ProfileSheet = ({ open, onOpenChange }: Props) => {
             <Icon name="ChevronRight" size={18} className="text-muted-foreground" />
           </button>
 
-          {!isIosApp() && (
+          {!isIosApp() && !isAndroidApp() && (
             <button
               onClick={() => setUpdates(true)}
               className="w-full flex items-center gap-3 rounded-2xl border border-border bg-background p-4 text-left hover:border-muted-foreground/40 transition-colors"
