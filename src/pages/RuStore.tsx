@@ -55,6 +55,11 @@ const FIELDS: { label: string; hint?: string; value: string }[] = [
   { label: "Имя пакета (заполняется само из APK)", value: "dev.poehali.avtopark" },
 ];
 
+const REVIEW = `Тестовый аккаунт с заполненными данными:
+Логин: review
+Пароль: Avtopark2026
+На экране входа выберите «Войти» и введите эти данные.`;
+
 const SHOTS = [1, 2, 3, 4, 5].map((i) => `/rustore/screen-${i}.jpg`);
 
 const Copy = ({ value }: { value: string }) => {
@@ -139,9 +144,11 @@ const RuStore = () => (
 
       <section className="rounded-3xl border border-border bg-card p-5 space-y-2 text-sm">
         <h2 className="font-head text-xl mb-2">5. Для модератора</h2>
-        <p className="text-muted-foreground">
-          В поле «Комментарий для модератора» укажите логин и пароль тестового аккаунта — без входа приложение не проверят.
-        </p>
+        <p className="text-muted-foreground">Вставьте в поле «Комментарий для модератора». Тот же аккаунт подходит для Apple.</p>
+        <div className="flex items-start justify-between gap-3 rounded-2xl bg-background border border-border p-4 mt-2">
+          <p className="whitespace-pre-line">{REVIEW}</p>
+          <Copy value={REVIEW} />
+        </div>
       </section>
     </div>
   </InfoPage>
