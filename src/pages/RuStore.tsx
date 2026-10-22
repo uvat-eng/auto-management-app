@@ -1,5 +1,6 @@
 import { useState } from "react";
 import InfoPage from "@/components/fleet/InfoPage";
+import RuStoreForm, { PERMISSIONS } from "@/components/fleet/RuStoreForm";
 import Icon from "@/components/ui/icon";
 import { toast } from "sonner";
 
@@ -150,6 +151,8 @@ const RuStore = () => (
           <Copy value={REVIEW} />
         </div>
       </section>
+
+      <RuStoreForm copy={<Copy value={PERMISSIONS} />} />
     </div>
   </InfoPage>
 );
